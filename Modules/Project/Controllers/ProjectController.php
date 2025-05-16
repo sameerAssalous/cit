@@ -44,9 +44,8 @@ class ProjectController extends Controller
         return response()->json(['message' => 'Project deleted successfully']);
     }
 
-    public function exportIssues(ExportProjectIssuesRequest $request, int $projectId): JsonResponse
+    public function exportIssues(ExportProjectIssuesRequest $request, int $projectId)
     {
-        $pdf = $this->projectService->exportProjectIssuesToPDF($projectId);
-        return response()->json(['pdf_path' => $pdf]);
+        return $this->projectService->exportProjectIssuesToPDF($projectId);
     }
 }

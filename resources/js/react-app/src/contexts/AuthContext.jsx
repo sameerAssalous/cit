@@ -1,7 +1,14 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import authService from '../services/authService';
 
-const AuthContext = createContext(null);
+// Create the context with a default value
+const AuthContext = createContext({
+    user: null,
+    loading: true,
+    login: async () => {},
+    logout: () => {},
+    isAuthenticated: false
+});
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -26,9 +33,13 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (email, password) => {
-        const response = await authService.login(email, password);
-        setUser(response.user);
-        return response;
+        try {
+            const response = await authService.login(email, password);
+            setUser(response.user);
+            return response;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const logout = () => {
@@ -46,14 +57,14 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context) {
+    if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;

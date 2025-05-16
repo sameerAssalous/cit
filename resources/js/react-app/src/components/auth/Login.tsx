@@ -8,6 +8,7 @@ import { UserRole } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import Logo from "@/components/layout/Logo";
+import { authService } from "@/services/authService.js";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -22,7 +23,8 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+        await authService.login(email, password);
+     // await login(email, password);
       toast({
         title: "Login successful",
         description: "Welcome back!",

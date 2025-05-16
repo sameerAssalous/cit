@@ -38,9 +38,8 @@ class ProjectService
         $project = $this->projectRepository->findWithIssues($projectId);
 
         $pdf = \PDF::loadView('pdf.project_issues', compact('project'));
-        $filePath = storage_path("app/public/projects/project_{$projectId}_issues.pdf");
-        $pdf->save($filePath);
+        return $pdf->download("project_{$project->name}_issues.pdf");
 
-        return asset("storage/projects/project_{$projectId}_issues.pdf");
+
     }
 }

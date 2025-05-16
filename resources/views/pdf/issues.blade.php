@@ -27,7 +27,7 @@
         <td>{{ $issue->id }}</td>
         <td>{{ $issue->project->name ?? 'N/A' }}</td>
         <td>{{ $issue->title }}</td>
-        <td>{{ $issue->status }}</td>
+        <td>{{ \Modules\Issue\Enums\IssueStatus::from($issue->status)->name }}</td>
         <td>{{ $issue->due_date }}</td>
     </tr>
     @endforeach

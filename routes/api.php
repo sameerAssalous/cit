@@ -40,7 +40,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('issues/{id}/status', [IssueController::class, 'updateStatus'])
         ->middleware('permission:resolve-issues');
 
-    Route::get('issues/{id}/export', [IssueController::class, 'exportPdf'])
+    Route::post('issues/{id}/export', [IssueController::class, 'exportPdf'])
         ->middleware('permission:view-issues');
 });
 
@@ -52,6 +52,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         'destroy' => 'permission:delete-projects',
     ]);
 
-    Route::get('projects/{id}/export', [ProjectController::class, 'exportIssues'])
+    Route::post('projects/{id}/export', [ProjectController::class, 'exportIssues'])
         ->middleware('permission:view-issues');
 });
