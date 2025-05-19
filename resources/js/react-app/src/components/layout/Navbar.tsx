@@ -14,9 +14,12 @@ import { LogOut, Settings, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Logo from "./Logo";
 import { UserRole } from "@/types";
+import { useLocalization } from "@/context/LocalizationContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const { t } = useLocalization();
 
   const getInitials = (name: string) => {
     return name
@@ -30,11 +33,11 @@ const Navbar: React.FC = () => {
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
       case UserRole.ADMINISTRATOR:
-        return "Administrator";
+        return t("dashboard.admin_dashboard");
       case UserRole.PROJECT_MANAGER:
-        return "Project Manager";
+        return t("dashboard.project_manager_dashboard");
       case UserRole.EMPLOYEE:
-        return "Employee";
+        return t("dashboard.employee_dashboard");
       default:
         return "User";
     }
@@ -48,7 +51,9 @@ const Navbar: React.FC = () => {
             <Logo />
           </div>
           
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -71,7 +76,7 @@ const Navbar: React.FC = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                       <Settings size={16} />
-                      <span>Settings</span>
+                      <span>{t("settings.settings")}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -92,7 +97,7 @@ const Navbar: React.FC = () => {
               </DropdownMenu>
             ) : (
               <Button asChild>
-                <Link to="/login">Sign In</Link>
+                <Link to="/login">{t("auth.signin")}</Link>
               </Button>
             )}
           </div>

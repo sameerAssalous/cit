@@ -1,60 +1,68 @@
-
-// Define user roles
 export enum UserRole {
-  EMPLOYEE = "employee",
-  PROJECT_MANAGER = "project_manager",
   ADMINISTRATOR = "administrator",
+  PROJECT_MANAGER = "project_manager",
+  EMPLOYEE = "employee",
 }
 
-// Define issue status
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  roles?: [{ id: number; name: string }];
+  projectIds?: string[];
+}
+
+export interface Project {
+  id: string | number;
+  name: string;
+  location: string;
+  description: string;
+  manager_id: string | number | null;
+  manager?: User;
+}
+
 export enum IssueStatus {
   OPEN = "open",
   IN_PROGRESS = "in_progress",
   CLOSED = "closed",
 }
 
-// User interface
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  projectIds?: string[]; // For project managers
-  location?: string; // Added the location property
-}
-
-// Project interface
-export interface Project {
-  id: string;
-  name: string;
-  location: string;
-  description?: string; // Added the description property
-  managerIds: string[];
-  createdAt?: Date; // Added the createdAt property
-}
-
-// Comment interface
-export interface Comment {
-  id: string;
-  issueId: string;
-  userId: string;
-  userName: string;
-  content: string;
-  createdAt: string;
-}
-
-// Issue interface
 export interface Issue {
   id: string;
-  projectId: string;
-  projectName: string;
-  reporterId: string;
-  reporterName: string;
   title: string;
   description: string;
   status: IssueStatus;
+  reporterId: string;
+  reporterName: string;
+  projectId: string;
+  projectName: string;
   createdAt: string;
-  updatedAt: string;
-  imageUrl?: string;
   comments: Comment[];
+}
+
+export interface ApiIssue {
+  id: number;
+  title: string;
+  description: string;
+  status: string | number;
+  reporter_id: number;
+  project_id: number;
+  created_at: string;
+  updated_at: string;
+  project?: Project;
+  reported_by?: User;
+  comments: Comment[];
+  reporterName?: string;
+  projectName?: string;
+  projectId?: number;
+  createdAt?: string;
+}
+
+export interface Comment {
+  id: string;
+  text: string;
+  authorId: string;
+  authorName: string;
+  createdAt: string;
 }

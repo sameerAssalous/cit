@@ -1,8 +1,6 @@
 
-import React, { useState } from "react";
-import { USERS, PROJECTS } from "@/services/mockData";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { UserRole } from "@/types";
 import { Button } from "@/components/ui/button";
 import { 
   Table, 
@@ -21,63 +19,70 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import { Edit, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import UserForm from "@/components/users/UserForm";
+import { User } from "@/types";
+import { getUsers } from "@/services/userService";
+import { useToast } from "@/components/ui/use-toast";
 
 const Users: React.FC = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
-  const [editingUserId, setEditingUserId] = useState<string | undefined>();
+  const [editingUserId, setEditingUserId] = useState<string | number | undefined>();
+  const { toast } = useToast();
   
-  if (!user || user.role !== UserRole.ADMINISTRATOR) {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getUsers();
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+        toast({
+          title: "Error fetching users",
+          description: "There was a problem loading the users data.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUsers();
+  }, [toast]);
+  
+  if (!user || !hasPermission("view-users")) {
     return <div className="p-8">You don't have permission to view this page.</div>;
   }
 
   // Filter users based on search
-  const filteredUsers = USERS.filter((u) => 
+  const filteredUsers = users.filter((u) => 
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getRoleLabel = (role: UserRole) => {
-    switch (role) {
-      case UserRole.ADMINISTRATOR:
-        return "Administrator";
-      case UserRole.PROJECT_MANAGER:
-        return "Project Manager";
-      case UserRole.EMPLOYEE:
-        return "Employee";
-      default:
-        return "User";
+  const getRoleLabel = (user: User) => {
+    if (user.roles && user.roles.length > 0) {
+      return user.roles.map(role => role.name).join(", ");
     }
+    return "No role";
   };
   
-  const getRoleBadgeClass = (role: UserRole) => {
-    switch (role) {
-      case UserRole.ADMINISTRATOR:
-        return "bg-purple-600";
-      case UserRole.PROJECT_MANAGER:
-        return "bg-construction-tertiary";
-      case UserRole.EMPLOYEE:
-        return "bg-construction-secondary";
-      default:
-        return "bg-gray-500";
+  const getRoleBadgeClass = (user: User) => {
+    if (!user.roles || user.roles.length === 0) return "bg-gray-500";
+    
+    // Check for highest role level (admin > project_manager > employee)
+    if (user.roles.some(role => role.name === "admin")) {
+      return "bg-purple-600";
+    } else if (user.roles.some(role => role.name === "project_manager")) {
+      return "bg-construction-tertiary";
+    } else {
+      return "bg-construction-secondary";
     }
-  };
-
-  const getUserProjects = (userId: string) => {
-    if (!userId) return "N/A";
-    
-    const userProjectIds = USERS.find(u => u.id === userId)?.projectIds || [];
-    if (userProjectIds.length === 0) return "None";
-    
-    const projectNames = userProjectIds.map(id => {
-      const project = PROJECTS.find(p => p.id === id);
-      return project?.name || "Unknown";
-    });
-    
-    return projectNames.join(", ");
   };
   
   const handleAddUser = () => {
@@ -85,9 +90,15 @@ const Users: React.FC = () => {
     setIsUserFormOpen(true);
   };
   
-  const handleEditUser = (userId: string) => {
+  const handleEditUser = (userId: string | number) => {
     setEditingUserId(userId);
     setIsUserFormOpen(true);
+  };
+  
+  const handleFormSuccess = (user: User) => {
+    // Refresh the users list after successful form submission
+    getUsers().then(response => setUsers(response.data));
+    setIsUserFormOpen(false);
   };
 
   return (
@@ -98,10 +109,12 @@ const Users: React.FC = () => {
             <p className="text-gray-600">Manage system users</p>
           </div>
           
-          <Button className="flex items-center gap-2" onClick={handleAddUser}>
-            <Plus size={16} />
-            <span>Add User</span>
-          </Button>
+          {hasPermission("create-users") && (
+            <Button className="flex items-center gap-2" onClick={handleAddUser}>
+              <Plus size={16} />
+              <span>Add User</span>
+            </Button>
+          )}
         </div>
 
         <Card>
@@ -124,50 +137,70 @@ const Users: React.FC = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead className="hidden md:table-cell">Location</TableHead>
-                    <TableHead className="hidden lg:table-cell">Projects</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="hidden md:table-cell">Created At</TableHead>
+                    {hasPermission("edit-users") && (
+                      <TableHead className="text-right">Actions</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>
-                        <Badge className={getRoleBadgeClass(u.role)}>
-                          {getRoleLabel(u.role)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">{u.location || "N/A"}</TableCell>
-                      <TableCell className="hidden lg:table-cell max-w-[200px] truncate">
-                        {getUserProjects(u.id)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal size={16} />
-                              <span className="sr-only">Actions</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              className="flex items-center gap-2"
-                              onClick={() => handleEditUser(u.id)}
-                            >
-                              <Edit size={14} />
-                              <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center gap-2 text-red-600">
-                              <Trash2 size={14} />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10">
+                        Loading users...
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : filteredUsers.length > 0 ? (
+                    filteredUsers.map((u) => (
+                      <TableRow key={u.id}>
+                        <TableCell className="font-medium">{u.name}</TableCell>
+                        <TableCell>{u.email}</TableCell>
+                        <TableCell>
+                          <Badge className={getRoleBadgeClass(u)}>
+                            {getRoleLabel(u)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {u.created_at ? new Date(u.created_at).toLocaleDateString() : "N/A"}
+                        </TableCell>
+                        {hasPermission("edit-users") && (
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal size={16} />
+                                  <span className="sr-only">Actions</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {hasPermission("edit-users") && (
+                                  <DropdownMenuItem 
+                                    className="flex items-center gap-2"
+                                    onClick={() => handleEditUser(u.id)}
+                                  >
+                                    <Edit size={14} />
+                                    <span>Edit</span>
+                                  </DropdownMenuItem>
+                                )}
+                                {hasPermission("delete-users") && (
+                                  <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                                    <Trash2 size={14} />
+                                    <span>Delete</span>
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10">
+                        No users found matching your search.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -177,7 +210,8 @@ const Users: React.FC = () => {
         <UserForm 
           isOpen={isUserFormOpen} 
           onClose={() => setIsUserFormOpen(false)}
-          userId={editingUserId}  
+          userId={editingUserId}
+          onSuccess={handleFormSuccess}
         />
       </div>
   );

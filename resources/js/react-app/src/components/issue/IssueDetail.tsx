@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
-import { updateIssueStatus, addComment, generateIssuePdfData } from "@/services/issueService";
-import { useToast } from "@/components/ui/use-toast";
+import { updateIssueStatus, addIssueComment, exportIssuePdf } from "@/services/issueService";
+import { useToast } from "@/hooks/use-toast";
 
 interface IssueDetailProps {
   issue: Issue;
@@ -55,7 +55,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
     setIsSubmitting(true);
     
     try {
-      await updateIssueStatus(issue.id, newStatus, user.id);
+      await updateIssueStatus(String(issue.id), newStatus, String(user.id));
       setStatus(newStatus);
       onIssueUpdated();
       
@@ -82,7 +82,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
     setIsSubmitting(true);
     
     try {
-      await addComment(issue.id, user.id, user.name, comment);
+      await addIssueComment(String(issue.id), String(user.id), user.name, comment);
       setComment("");
       onIssueUpdated();
       
@@ -102,38 +102,32 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
     }
   };
 
-  const generatePdf = () => {
+  const handleGeneratePdf = async () => {
     setIsPdfGenerating(true);
     
-    // In a real app, we would generate a PDF here and offer it for download
-    // For this demo, we'll simulate a delay and then show a success message
-    
     try {
-      const pdfData = generateIssuePdfData(issue);
-      console.log("Generated PDF data:", pdfData);
+      const blob = await exportIssuePdf(String(issue.id));
       
-      setTimeout(() => {
-        toast({
-          title: "PDF Generated",
-          description: "The PDF has been generated and is ready for download."
-        });
-        setIsPdfGenerating(false);
-        
-        // Create a blob with the text for demo purposes
-        const blob = new Blob([pdfData], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `issue-${issue.id}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }, 1000);
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `issue-${issue.id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "PDF Generated",
+        description: "The PDF has been generated and downloaded."
+      });
     } catch (error) {
       toast({
         title: "Error generating PDF",
         description: "Failed to generate PDF. Please try again.",
         variant: "destructive"
       });
+      console.error("Error generating PDF:", error);
+    } finally {
       setIsPdfGenerating(false);
     }
   };
@@ -183,7 +177,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={generatePdf}
+              onClick={handleGeneratePdf}
               disabled={isPdfGenerating}
             >
               {isPdfGenerating ? "Generating PDF..." : "Export as PDF"}

@@ -12,7 +12,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { PROJECTS, USERS } from "@/services/mockData";
 import { 
   Select,
   SelectContent,
@@ -21,45 +20,99 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { UserRole } from "@/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createProject, fetchProject, updateProject } from "@/services/projectService";
+import { getUsers } from "@/services/userService";
 
 interface ProjectFormProps {
   isOpen: boolean;
   onClose: () => void;
-  projectId?: string;
+  projectId?: string | null;
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, projectId }) => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [managers, setManagers] = useState<string[]>([]);
+  const [managerId, setManagerId] = useState<string>("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const isEditing = !!projectId;
-  
-  // Get all project managers
-  const projectManagers = USERS.filter(user => 
-    user.role === UserRole.PROJECT_MANAGER
-  );
+
+  // Fetch project data if editing
+  const { data: project, isLoading: isLoadingProject } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: () => fetchProject(projectId!),
+    enabled: isEditing,
+  });
+
+  // Fetch users for manager selection
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users"],
+    queryFn: getUsers,
+  });
+
+  // Filter project managers
+  const projectManagers = users?.data?.filter(user => 
+    user.role === UserRole.PROJECT_MANAGER || 
+    user.roles?.some(role => role.name === "project_manager" || role.name === "admin")
+  ) || [];
+
+  // Create project mutation
+  const createMutation = useMutation({
+    mutationFn: createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({
+        title: "Project created",
+        description: `Project "${name}" has been created successfully.`,
+      });
+      onClose();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to create project: ${(error as Error).message}`,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update project mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string | number, data: any }) => 
+      updateProject(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+      toast({
+        title: "Project updated",
+        description: `Project "${name}" has been updated successfully.`,
+      });
+      onClose();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update project: ${(error as Error).message}`,
+        variant: "destructive",
+      });
+    }
+  });
 
   useEffect(() => {
-    if (isEditing && projectId) {
-      const project = PROJECTS.find(p => p.id === projectId);
-      if (project) {
-        setName(project.name);
-        setLocation(project.location || "");
-        // Access description if it exists, otherwise use empty string
-        setDescription(project.description || "");
-        setManagers(project.managerIds || []);
+    if (project) {
+      setName(project.name);
+      setLocation(project.location || "");
+      setDescription(project.description || "");
+      if (project.manager_id) {
+        setManagerId(String(project.manager_id));
+      } else if (project.manager?.id) {
+        setManagerId(String(project.manager.id));
       }
-    } else {
-      // Reset form for new project
-      setName("");
-      setLocation("");
-      setDescription("");
-      setManagers([]);
     }
-  }, [projectId, isEditing]);
+  }, [project]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,31 +126,23 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, projectId })
       return;
     }
     
-    try {
-      if (isEditing && projectId) {
-        // For demo purposes, we just show a toast
-        // In a real app, this would update the project in the database
-        toast({
-          title: "Project updated",
-          description: `Project "${name}" has been updated successfully.`,
-        });
-      } else {
-        // For demo purposes, we just show a toast
-        // In a real app, this would add a new project to the database
-        toast({
-          title: "Project created",
-          description: `Project "${name}" has been created successfully.`,
-        });
-      }
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+    const projectData = {
+      name,
+      location,
+      description,
+      manager_id: managerId || undefined
+    };
+    
+    if (isEditing && projectId) {
+      updateMutation.mutate({ id: projectId, data: projectData });
+    } else {
+      createMutation.mutate(projectData);
     }
   };
+
+  if (isEditing && isLoadingProject) {
+    return <div>Loading project data...</div>;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -137,29 +182,35 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ isOpen, onClose, projectId })
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="managers">Project Managers</Label>
-            <Select>
+            <Label htmlFor="managers">Project Manager</Label>
+            <Select value={managerId} onValueChange={setManagerId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select managers" />
+                <SelectValue placeholder="Select a manager" />
               </SelectTrigger>
               <SelectContent>
-                {projectManagers.map(manager => (
-                  <SelectItem key={manager.id} value={manager.id}>
-                    {manager.name}
-                  </SelectItem>
-                ))}
+                {isLoadingUsers ? (
+                  <SelectItem value="loading" disabled>Loading managers...</SelectItem>
+                ) : projectManagers.length > 0 ? (
+                  projectManagers.map(manager => (
+                    <SelectItem key={String(manager.id)} value={String(manager.id)}>
+                      {manager.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="none" disabled>No managers available</SelectItem>
+                )}
               </SelectContent>
             </Select>
-            <div className="text-xs text-gray-500">
-              Note: In this demo version, manager selection is not functional
-            </div>
           </div>
           <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={createMutation.isPending || updateMutation.isPending}>
               Cancel
             </Button>
-            <Button type="submit">
-              {isEditing ? "Update Project" : "Create Project"}
+            <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              {createMutation.isPending || updateMutation.isPending 
+                ? "Saving..."
+                : isEditing ? "Update Project" : "Create Project"
+              }
             </Button>
           </DialogFooter>
         </form>

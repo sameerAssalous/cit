@@ -1,121 +1,101 @@
 
-import React, { useState } from "react";
-import { Issue, IssueStatus, Project, UserRole } from "@/types";
-import IssueCard from "./IssueCard";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ApiIssue, Issue, IssueStatus } from "@/types";
+import { formatDate } from "@/lib/utils";
 
 interface IssueListProps {
-  issues: Issue[];
-  projects: Project[];
-  userRole: UserRole;
+  issues: ApiIssue[];
+  isLoading?: boolean;
 }
 
-const IssueList: React.FC<IssueListProps> = ({ issues, projects, userRole }) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProject, setSelectedProject] = useState<string | "all">("all");
-  const [selectedStatus, setSelectedStatus] = useState<IssueStatus | "all">("all");
+const IssueList: React.FC<IssueListProps> = ({ issues, isLoading }) => {
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-center items-center h-40">
+            <p className="text-muted-foreground">Loading issues...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  // Filter issues based on search query, selected project, and status
-  const filteredIssues = issues.filter((issue) => {
-    const matchesSearch = 
-      issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.reporterName.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesProject = selectedProject === "all" || issue.projectId === selectedProject;
-    
-    const matchesStatus = selectedStatus === "all" || issue.status === selectedStatus;
-    
-    return matchesSearch && matchesProject && matchesStatus;
-  });
+  if (!issues || issues.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-center items-center h-40">
+            <p className="text-muted-foreground">No issues found</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedProject("all");
-    setSelectedStatus("all");
+  const getStatusBadge = (status: string | number) => {
+    // Convert numerical status to string status
+    let statusString: IssueStatus;
+    
+    if (typeof status === "number") {
+      switch (status) {
+        case 1:
+          statusString = IssueStatus.OPEN;
+          break;
+        case 2:
+          statusString = IssueStatus.IN_PROGRESS;
+          break;
+        case 3:
+          statusString = IssueStatus.CLOSED;
+          break;
+        default:
+          statusString = IssueStatus.OPEN;
+      }
+    } else {
+      statusString = status as IssueStatus;
+    }
+    
+    switch (statusString) {
+      case IssueStatus.OPEN:
+        return <Badge className="bg-construction-danger">Open</Badge>;
+      case IssueStatus.IN_PROGRESS:
+        return <Badge className="bg-construction-warning">In Progress</Badge>;
+      case IssueStatus.CLOSED:
+        return <Badge className="bg-construction-success">Closed</Badge>;
+      default:
+        return <Badge>Unknown</Badge>;
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">Filter Issues</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="search" className="text-sm">Search</Label>
-            <Input
-              id="search"
-              placeholder="Search issues..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="project" className="text-sm">Project</Label>
-            <Select
-              value={selectedProject}
-              onValueChange={(value) => setSelectedProject(value)}
-            >
-              <SelectTrigger id="project" className="mt-1">
-                <SelectValue placeholder="Select Project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Projects</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <Label htmlFor="status" className="text-sm">Status</Label>
-            <Select
-              value={selectedStatus}
-              onValueChange={(value: IssueStatus | "all") => setSelectedStatus(value)}
-            >
-              <SelectTrigger id="status" className="mt-1">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value={IssueStatus.OPEN}>Open</SelectItem>
-                <SelectItem value={IssueStatus.IN_PROGRESS}>In Progress</SelectItem>
-                <SelectItem value={IssueStatus.CLOSED}>Closed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="flex justify-end mt-4">
-          <Button variant="outline" onClick={clearFilters} size="sm">
-            Clear Filters
-          </Button>
-        </div>
-      </div>
-      
-      {filteredIssues.length === 0 ? (
-        <div className="text-center py-8 bg-white rounded-lg shadow-sm">
-          <p className="text-gray-500">No issues found matching your criteria.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredIssues.map((issue) => (
-            <IssueCard 
-              key={issue.id} 
-              issue={issue} 
-              userRole={userRole} 
-            />
-          ))}
-        </div>
-      )}
+    <div className="grid grid-cols-1 gap-4">
+      {issues.map((issue) => (
+        <Link to={`/issue/${String(issue.id)}`} key={String(issue.id)}>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">{issue.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Project: {issue.project?.name || "Unknown"}
+                  </p>
+                </div>
+                {getStatusBadge(issue.status)}
+              </div>
+              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                {issue.description}
+              </p>
+              <div className="flex justify-between items-center text-xs text-gray-500 mt-2">
+                <div>Reported by: {issue.reported_by?.name || "Unknown"}</div>
+                <div>Created: {formatDate(issue.created_at)}</div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      ))}
     </div>
   );
 };

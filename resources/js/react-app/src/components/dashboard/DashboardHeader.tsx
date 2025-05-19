@@ -2,6 +2,7 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types";
+import { useLocalization } from "@/context/LocalizationContext";
 
 interface DashboardHeaderProps {
   totalIssues: number;
@@ -17,25 +18,26 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   closedIssues,
 }) => {
   const { user } = useAuth();
+  const { t } = useLocalization();
 
   if (!user) return null;
 
   // Define dashboard title and description based on user role
-  let dashboardTitle = "Dashboard";
-  let dashboardDescription = "View and manage construction issues";
+  let dashboardTitle = t("dashboard.dashboard");
+  let dashboardDescription = t("dashboard.submit_issues");
 
   switch (user.role) {
     case UserRole.ADMINISTRATOR:
-      dashboardTitle = "Administrator Dashboard";
-      dashboardDescription = "Manage all projects, issues, and users";
+      dashboardTitle = t("dashboard.admin_dashboard");
+      dashboardDescription = t("dashboard.manage_all");
       break;
     case UserRole.PROJECT_MANAGER:
-      dashboardTitle = "Project Manager Dashboard";
-      dashboardDescription = "Manage your assigned projects and issues";
+      dashboardTitle = t("dashboard.project_manager_dashboard");
+      dashboardDescription = t("dashboard.manage_projects");
       break;
     case UserRole.EMPLOYEE:
-      dashboardTitle = "Employee Dashboard";
-      dashboardDescription = "Submit new construction issues";
+      dashboardTitle = t("dashboard.employee_dashboard");
+      dashboardDescription = t("dashboard.submit_issues");
       break;
   }
 
@@ -47,15 +49,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       <div className="mt-2 text-sm">
         <div className="inline-flex items-center gap-2 mr-4">
           <span className="w-3 h-3 rounded-full bg-construction-danger"></span>
-          <span>Open: {openIssues}</span>
+          <span>{t("dashboard.open")}: {openIssues}</span>
         </div>
         <div className="inline-flex items-center gap-2 mr-4">
           <span className="w-3 h-3 rounded-full bg-construction-warning"></span>
-          <span>In Progress: {inProgressIssues}</span>
+          <span>{t("dashboard.in_progress")}: {inProgressIssues}</span>
         </div>
         <div className="inline-flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-construction-success"></span>
-          <span>Closed: {closedIssues}</span>
+          <span>{t("dashboard.closed")}: {closedIssues}</span>
         </div>
       </div>
     </div>

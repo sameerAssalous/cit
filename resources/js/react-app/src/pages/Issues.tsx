@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ISSUES, PROJECTS } from "@/services/mockData";
+
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Issue, IssueStatus, UserRole } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -26,49 +26,68 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format, subDays, startOfToday, startOfYesterday, startOfWeek, startOfMonth } from "date-fns";
+import { format, startOfToday, startOfYesterday, startOfWeek, startOfMonth } from "date-fns";
 import { formatDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import { Download, Eye, MessageSquare, Plus, Search, Filter, Calendar as CalendarIcon } from "lucide-react";
+import { Download, Eye, MessageSquare, Plus, Search, Calendar as CalendarIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import IssueReportModal from "@/components/issue/IssueReportModal";
+import { useToast } from "@/hooks/use-toast";
+import { getIssues } from "@/services/issueService";
+import { useQuery } from "@tanstack/react-query";
 
 const Issues: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [isIssueReportModalOpen, setIsIssueReportModalOpen] = useState(false);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+  
+  // Fetch issues from API
+  const { data: issues = [], isLoading, error } = useQuery({
+    queryKey: ['issues', debouncedSearchQuery],
+    queryFn: () => getIssues(debouncedSearchQuery),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error loading issues",
+        description: "Could not load issues. Please try again.",
+        variant: "destructive"
+      });
+      console.error("Error loading issues:", error);
+    }
+  }, [error, toast]);
   
   if (!user) return null;
   
-  // Get issues based on user role
-  const allIssues = user.role === UserRole.ADMINISTRATOR 
-    ? ISSUES 
-    : user.role === UserRole.PROJECT_MANAGER
-    ? ISSUES.filter(issue => user.projectIds?.includes(issue.projectId))
-    : ISSUES.filter(issue => issue.reporterId === user.id);
-
-  // Get unique projects from issues
-  const uniqueProjects = [...new Set(allIssues.map(issue => issue.projectId))];
-  
-  // Filter issues based on search, status, project and date
-  const filteredIssues = allIssues.filter((issue) => {
-    const matchesSearch = searchQuery 
-      ? issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        issue.description.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-      
+  // Filter issues based on status, project and date
+  const filteredIssues = issues.filter((issue) => {
     const matchesStatus = selectedStatus !== "all" 
       ? issue.status === selectedStatus
       : true;
 
     const matchesProject = selectedProject !== "all" 
-      ? issue.projectId === selectedProject
+      ? String(issue.projectId) === selectedProject
       : true;
 
     // Filter by date range
@@ -96,8 +115,11 @@ const Issues: React.FC = () => {
       matchesDate = issueDate >= monthAgo;
     }
       
-    return matchesSearch && matchesStatus && matchesProject && matchesDate;
+    return matchesStatus && matchesProject && matchesDate;
   });
+  
+  // Get unique projects from issues
+  const uniqueProjects = [...new Set(issues.map(issue => issue.projectId))];
   
   const getStatusBadge = (status: IssueStatus) => {
     switch (status) {
@@ -110,11 +132,6 @@ const Issues: React.FC = () => {
       default:
         return <Badge>Unknown</Badge>;
     }
-  };
-
-  const getProjectName = (projectId: string) => {
-    const project = PROJECTS.find(p => p.id === projectId);
-    return project ? project.name : "Unknown Project";
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -188,9 +205,10 @@ const Issues: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">All Projects</SelectItem>
                   {uniqueProjects.map(projectId => {
-                    const projectName = getProjectName(projectId);
+                    const project = issues.find(issue => issue.projectId === projectId);
+                    const projectName = project ? project.projectName : "Unknown Project";
                     return (
-                      <SelectItem key={projectId} value={projectId}>
+                      <SelectItem key={projectId} value={String(projectId)}>
                         {projectName}
                       </SelectItem>
                     );
@@ -275,7 +293,13 @@ const Issues: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredIssues.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      Loading issues...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredIssues.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                       No issues found matching your criteria
@@ -285,7 +309,7 @@ const Issues: React.FC = () => {
                   filteredIssues.map((issue) => (
                     <TableRow key={issue.id}>
                       <TableCell className="font-medium max-w-[200px] truncate">{issue.title}</TableCell>
-                      <TableCell>{getProjectName(issue.projectId)}</TableCell>
+                      <TableCell>{issue.projectName}</TableCell>
                       <TableCell>{issue.reporterName}</TableCell>
                       <TableCell>{formatDate(issue.createdAt)}</TableCell>
                       <TableCell>{getStatusBadge(issue.status)}</TableCell>

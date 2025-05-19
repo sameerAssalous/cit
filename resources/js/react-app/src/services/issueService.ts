@@ -1,163 +1,91 @@
 
-import { Issue, IssueStatus, Comment, User, UserRole } from "../types";
-import { ISSUES, PROJECTS } from "./mockData";
+import apiClient from "./apiClient";
+import { ApiIssue } from "@/types";
 
-// Function to simulate adding a new issue
-export const addIssue = (
-  title: string,
-  description: string,
-  projectId: string,
-  reporterId: string,
-  reporterName: string,
-  imageUrl?: string
-): Promise<Issue> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const project = PROJECTS.find(p => p.id === projectId);
-      
-      // Create new issue
-      const newIssue: Issue = {
-        id: `${ISSUES.length + 1}`,
-        projectId,
-        projectName: project?.name || "Unknown Project",
-        reporterId,
-        reporterName,
-        title,
-        description,
-        status: IssueStatus.OPEN,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        imageUrl,
-        comments: []
-      };
-      
-      // Add to mock database
-      ISSUES.unshift(newIssue);
-      
-      resolve(newIssue);
-    }, 500);
-  });
-};
-
-// Function to update issue status
-export const updateIssueStatus = (
-  issueId: string,
-  status: IssueStatus,
-  userId: string
-): Promise<Issue> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const issueIndex = ISSUES.findIndex(issue => issue.id === issueId);
-      
-      if (issueIndex === -1) {
-        reject(new Error("Issue not found"));
-        return;
-      }
-      
-      // Update issue status
-      ISSUES[issueIndex] = {
-        ...ISSUES[issueIndex],
-        status,
-        updatedAt: new Date().toISOString()
-      };
-      
-      resolve(ISSUES[issueIndex]);
-    }, 500);
-  });
-};
-
-// Function to add a comment to an issue
-export const addComment = (
-  issueId: string,
-  userId: string,
-  userName: string,
-  content: string
-): Promise<Comment> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const issueIndex = ISSUES.findIndex(issue => issue.id === issueId);
-      
-      if (issueIndex === -1) {
-        reject(new Error("Issue not found"));
-        return;
-      }
-      
-      // Create new comment
-      const newComment: Comment = {
-        id: `comment-${Date.now()}`,
-        issueId,
-        userId,
-        userName,
-        content,
-        createdAt: new Date().toISOString()
-      };
-      
-      // Add comment to issue
-      ISSUES[issueIndex].comments.push(newComment);
-      
-      resolve(newComment);
-    }, 500);
-  });
-};
-
-// Function to get issue details
-export const getIssueById = (issueId: string): Promise<Issue | null> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const issue = ISSUES.find(issue => issue.id === issueId) || null;
-      resolve(issue);
-    }, 300);
-  });
-};
-
-// Function to check if user can access this issue
-export const canUserAccessIssue = (user: User | null, issueId: string): boolean => {
-  if (!user) return false;
-  
-  // Administrators can access everything
-  if (user.role === UserRole.ADMINISTRATOR) return true;
-  
-  const issue = ISSUES.find(i => i.id === issueId);
-  if (!issue) return false;
-  
-  // Project managers can access issues from their projects
-  if (user.role === UserRole.PROJECT_MANAGER) {
-    return user.projectIds?.includes(issue.projectId) || false;
-  }
-  
-  // Employees cannot access any issue details
-  return false;
-};
-
-// Generate PDF data for an issue
-export const generateIssuePdfData = (issue: Issue): string => {
-  // In a real application, this would generate actual PDF data
-  // For this demo, we'll just return a string representation
-  
-  const statusText = {
-    [IssueStatus.OPEN]: "Open",
-    [IssueStatus.IN_PROGRESS]: "In Progress",
-    [IssueStatus.CLOSED]: "Closed"
+interface IssueResponse {
+  data: ApiIssue[];
+  links: {
+    first: string;
+    last: string;
+    prev: string | null;
+    next: string | null;
   };
+  meta: {
+    current_page: number;
+    from: number;
+    last_page: number;
+    links: { url: string | null; label: string; active: boolean }[];
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+  };
+}
+
+interface IssueQueryParams {
+  search_term?: string;
+  status?: string | number;
+  project_id?: string | number;
+  date_from?: string;
+  date_to?: string;
+  page?: number;
+}
+
+// Get all issues with optional filtering
+export const getIssues = async (params?: IssueQueryParams): Promise<IssueResponse> => {
+  // Build query string from params
+  const queryParams = new URLSearchParams();
   
-  const commentsText = issue.comments.map(c => 
-    `${c.userName} (${new Date(c.createdAt).toLocaleString()}): ${c.content}`
-  ).join("\n");
-  
-  return `
-    Issue Report
-    ------------
-    
-    ID: ${issue.id}
-    Project: ${issue.projectName}
-    Title: ${issue.title}
-    Reported by: ${issue.reporterName} on ${new Date(issue.createdAt).toLocaleString()}
-    Status: ${statusText[issue.status]}
-    
-    Description:
-    ${issue.description}
-    
-    Comments:
-    ${commentsText || "No comments yet."}
-  `;
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, String(value));
+      }
+    });
+  }
+
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  const response = await apiClient.get(`/issues${queryString}`);
+  return response.data;
+};
+
+// Get a single issue by ID
+export const getIssue = async (id: string | number): Promise<ApiIssue> => {
+  const response = await apiClient.get(`/issues/${id}`);
+  return response.data;
+};
+
+// Create a new issue
+export const createIssue = async (issueData: any): Promise<ApiIssue> => {
+  const response = await apiClient.post('/issues', issueData);
+  return response.data;
+};
+
+// Update an issue
+export const updateIssue = async (id: string | number, issueData: any): Promise<ApiIssue> => {
+  const response = await apiClient.patch(`/issues/${id}`, issueData);
+  return response.data;
+};
+
+// Delete an issue
+export const deleteIssue = async (id: string | number): Promise<void> => {
+  await apiClient.delete(`/issues/${id}`);
+};
+
+// Update issue status
+export const updateIssueStatus = async (id: string | number, status: string | number): Promise<ApiIssue> => {
+  const response = await apiClient.post(`/issues/${id}/status`, { status });
+  return response.data;
+};
+
+// Add comment to an issue
+export const addIssueComment = async (id: string | number, comment: string): Promise<ApiIssue> => {
+  const response = await apiClient.post(`/issues/${id}/comment`, { comment });
+  return response.data;
+};
+
+// Export issue as PDF
+export const exportIssuePdf = async (id: string | number): Promise<Blob> => {
+  const response = await apiClient.post(`/issues/${id}/export`, {}, { responseType: 'blob' });
+  return response.data;
 };

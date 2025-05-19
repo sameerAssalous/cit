@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,7 @@ import IssueDetailPage from "./pages/IssueDetailPage";
 import LoginPage from "./pages/Login";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuth } from "./context/AuthContext";
+import { LocalizationProvider } from "./context/LocalizationContext";
 
 const queryClient = new QueryClient();
 
@@ -38,38 +38,42 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-            
-            {/* Special route for report issue - doesn't use AppLayout because it's modal only */}
-            <Route path="/report-issue" element={<ReportIssuePage />} />
-            
-            {/* Protected routes with AppLayout */}
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-            <Route path="/project/:projectId" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
-            <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
-            <Route path="/issue/:issueId" element={<ProtectedRoute><IssueDetailPage /></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-            <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            
-            {/* 404 */}
-            <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <LocalizationProvider defaultLanguage="de">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+                
+                {/* Special route for report issue - doesn't use AppLayout because it's modal only */}
+                <Route path="/report-issue" element={<ReportIssuePage />} />
+                
+                {/* Protected routes with AppLayout */}
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+                <Route path="/project/:projectId" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+                <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
+                <Route path="/issue/:issueId" element={<ProtectedRoute><IssueDetailPage /></ProtectedRoute>} />
+                <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+                <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                
+                {/* 404 */}
+                <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </LocalizationProvider>
+  );
+}
 
 export default App;

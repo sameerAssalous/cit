@@ -11,11 +11,11 @@ const Logo: React.FC<LogoProps> = ({ variant = 'default', className = '' }) => {
   return (
     <Link to="/" className={`flex items-center gap-2 ${className}`}>
       <div className={`bg-construction-primary text-white font-bold rounded-md ${variant === 'small' ? 'p-1 text-sm' : 'p-2 text-base'}`}>
-        CIT
+        E.B.
       </div>
       {variant === 'default' && (
         <span className="text-xl font-bold hidden lg:inline">
-          Construction Issue Tracker
+          E.B. GmbH
         </span>
       )}
     </Link>

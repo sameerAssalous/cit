@@ -1,8 +1,7 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AppLayout from "@/components/layout/AppLayout";
 import { useLocation } from "react-router-dom";
-import { ISSUES, PROJECTS } from "@/services/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { formatDate } from "@/lib/utils";
 import { IssueStatus, UserRole } from "@/types";
@@ -32,6 +31,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { useQuery } from "@tanstack/react-query";
+import { getIssues } from "@/services/issueService";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -44,34 +46,44 @@ const Dashboard: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+
+  // Fetch all issues from API
+  const { data: issuesResponse, isLoading } = useQuery({
+    queryKey: ['dashboard-issues'],
+    queryFn: () => getIssues(),
+  });
+
+  const allIssues = issuesResponse?.data || [];
   
   // Calculate counts
-  const allIssues = user?.role === UserRole.ADMINISTRATOR 
-    ? ISSUES 
-    : user?.role === UserRole.PROJECT_MANAGER
-    ? ISSUES.filter(issue => user.projectIds?.includes(issue.projectId))
-    : ISSUES.filter(issue => issue.reporterId === user?.id) || [];
-  
-  const openIssues = allIssues.filter(issue => issue.status === IssueStatus.OPEN);
-  const inProgressIssues = allIssues.filter(issue => issue.status === IssueStatus.IN_PROGRESS);
-  const closedIssues = allIssues.filter(issue => issue.status === IssueStatus.CLOSED);
+  const openIssues = allIssues.filter(issue => issue.status === IssueStatus.OPEN || issue.status === 1);
+  const inProgressIssues = allIssues.filter(issue => issue.status === IssueStatus.IN_PROGRESS || issue.status === 2);
+  const closedIssues = allIssues.filter(issue => issue.status === IssueStatus.CLOSED || issue.status === 3);
   
   // Get unique projects from issues
-  const uniqueProjects = [...new Set(allIssues.map(issue => issue.projectId))];
+  const uniqueProjects = [...new Set(allIssues.map(issue => issue.project?.id || issue.projectId))];
   
   // Filter recent issues
   const filteredRecentIssues = allIssues
     .filter(issue => {
       const matchesSearch = searchQuery
-        ? issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          issue.description.toLowerCase().includes(searchQuery.toLowerCase())
+        ? (issue.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          issue.description?.toLowerCase().includes(searchQuery.toLowerCase()))
         : true;
-      const matchesStatus = selectedStatus === "all" || issue.status === selectedStatus;
-      const matchesProject = selectedProject === "all" || issue.projectId === selectedProject;
+      
+      const issueStatus = typeof issue.status === 'string' ? issue.status : 
+                         issue.status === 1 ? IssueStatus.OPEN :
+                         issue.status === 2 ? IssueStatus.IN_PROGRESS :
+                         issue.status === 3 ? IssueStatus.CLOSED : '';
+
+      const matchesStatus = selectedStatus === "all" || issueStatus === selectedStatus;
+      const matchesProject = selectedProject === "all" || 
+                            String(issue.project?.id) === selectedProject || 
+                            String(issue.projectId) === selectedProject;
       
       // Filter by date
       let matchesDate = true;
-      const issueDate = new Date(issue.createdAt);
+      const issueDate = new Date(issue.created_at || issue.createdAt);
       const today = startOfToday();
       
       if (dateFilter) {
@@ -96,11 +108,17 @@ const Dashboard: React.FC = () => {
       
       return matchesSearch && matchesStatus && matchesProject && matchesDate;
     })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a, b) => new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime())
     .slice(0, 5);
   
-  const getStatusBadge = (status: IssueStatus) => {
-    switch (status) {
+  const getStatusBadge = (status: IssueStatus | number) => {
+    // Convert numerical status to enum if needed
+    const normalizedStatus = typeof status === 'number' ? 
+      status === 1 ? IssueStatus.OPEN : 
+      status === 2 ? IssueStatus.IN_PROGRESS : 
+      status === 3 ? IssueStatus.CLOSED : status : status;
+      
+    switch (normalizedStatus) {
       case IssueStatus.OPEN:
         return <Badge className="bg-construction-danger">Open</Badge>;
       case IssueStatus.IN_PROGRESS:
@@ -112,9 +130,14 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getProjectName = (projectId: string) => {
-    const project = PROJECTS.find(p => p.id === projectId);
-    return project ? project.name : "Unknown Project";
+  const getProjectName = (projectId: string | number | undefined) => {
+    if (!projectId) return "Unknown Project";
+    
+    const project = allIssues.find(issue => 
+      (issue.project?.id === projectId) || (issue.projectId === projectId)
+    )?.project;
+
+    return project?.name || "Unknown Project";
   };
   
   const handleDateSelect = (date: Date | undefined) => {
@@ -135,8 +158,14 @@ const Dashboard: React.FC = () => {
   
   const DashboardContent = () => (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <DashboardHeader 
+        totalIssues={allIssues.length}
+        openIssues={openIssues.length}
+        inProgressIssues={inProgressIssues.length}
+        closedIssues={closedIssues.length}
+      />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
         <Card className="p-6 shadow-md">
           <h3 className="font-medium text-lg">Total Issues</h3>
           <p className="text-3xl font-bold mt-2">{allIssues.length}</p>
@@ -175,7 +204,7 @@ const Dashboard: React.FC = () => {
                 {uniqueProjects.map(projectId => {
                   const projectName = getProjectName(projectId);
                   return (
-                    <SelectItem key={projectId} value={projectId}>
+                    <SelectItem key={String(projectId)} value={String(projectId)}>
                       {projectName}
                     </SelectItem>
                   );
@@ -251,7 +280,13 @@ const Dashboard: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRecentIssues.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      Loading issues...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredRecentIssues.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                       No issues found matching your criteria
@@ -261,9 +296,9 @@ const Dashboard: React.FC = () => {
                   filteredRecentIssues.map((issue) => (
                     <TableRow key={issue.id}>
                       <TableCell className="font-medium max-w-[200px] truncate">{issue.title}</TableCell>
-                      <TableCell>{getProjectName(issue.projectId)}</TableCell>
-                      <TableCell>{issue.reporterName}</TableCell>
-                      <TableCell>{formatDate(issue.createdAt)}</TableCell>
+                      <TableCell>{getProjectName(issue.project?.id || issue.projectId)}</TableCell>
+                      <TableCell>{issue.reported_by?.name || issue.reporterName}</TableCell>
+                      <TableCell>{formatDate(issue.created_at || issue.createdAt)}</TableCell>
                       <TableCell>{getStatusBadge(issue.status)}</TableCell>
                       <TableCell className="text-right">
                         <Button 

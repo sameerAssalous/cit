@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { 
   Table, 
@@ -22,6 +23,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import apiClient from "@/services/apiClient";
+import { useToast } from "@/components/ui/use-toast";
 
 // Define the log entry type
 interface LogEntry {
@@ -33,11 +37,32 @@ interface LogEntry {
   happenedAt: string;
 }
 
+// API response type
+interface LogsResponse {
+  data: LogEntry[];
+  links: {
+    first: string;
+    last: string;
+    prev: string | null;
+    next: string | null;
+  };
+  meta: {
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+  };
+}
+
 // Define the filter type
 type FilterType = {
   userName: string;
   action: string;
   affected: string;
+  searchTerm: string;
   dateRange: {
     type: 'all' | 'today' | 'yesterday' | 'custom';
     from: Date | null;
@@ -45,90 +70,45 @@ type FilterType = {
   };
 }
 
-const LogsPage: React.FC = () => {
-  // Sample log data - in a real app, this would come from an API
-  const [logs] = useState<LogEntry[]>([
-    {
-      id: "1",
-      userName: "John ",
-      action: "Add User",
-      affected: "Sarah Employee",
-      info: { id: "usr_123", user_name: "sarah", role: "employee", email: "sarah@example.com" },
-      happenedAt: "2025-05-10T14:30:00Z"
-    },
-    {
-      id: "2",
-      userName: "Maria",
-      action: "Edit Project",
-      affected: "Office Tower Construction",
-      info: { 
-        id: "prj_456", 
-        name: "Office Tower Construction",
-        changes: {
-          location: { from: "Downtown", to: "Uptown" },
-          description: { from: "15 story office building", to: "18 story office building with retail" }
-        }
-      },
-      happenedAt: "2025-05-11T09:15:00Z"
-    },
-    {
-      id: "3",
-      userName: "Admin",
-      action: "Change Issue Status",
-      affected: "Electrical Problem #1345",
-      info: { 
-        id: "iss_789", 
-        title: "Electrical Problem #1345",
-        status: { from: "open", to: "in_progress" },
-        assignee: { from: null, to: "Robert Electrician" }
-      },
-      happenedAt: "2025-05-12T10:45:00Z"
-    },
-    {
-      id: "4",
-      userName: "David PM",
-      action: "Add Project",
-      affected: "Shopping Mall Renovation",
-      info: { 
-        id: "prj_890", 
-        name: "Shopping Mall Renovation",
-        location: "West Side",
-        description: "Complete renovation of the West Side Mall",
-        manager: "David PM"
-      },
-      happenedAt: "2025-05-12T13:20:00Z"
-    },
-    {
-      id: "5",
-      userName: "Maria",
-      action: "Edit User",
-      affected: "Tom Worker",
-      info: { 
-        id: "usr_234",
-        user_name: "tom",
-        changes: {
-          role: { from: "employee", to: "project_manager" },
-          projects: { added: ["Hospital Extension", "City Park"] }
-        }
-      },
-      happenedAt: "2025-05-12T15:10:00Z"
-    }
-  ]);
+// Function to fetch logs
+const fetchLogs = async (searchTerm = '') => {
+  const response = await apiClient.get(`/tracking${searchTerm ? `?search_term=${searchTerm}` : ''}`);
+  return response.data;
+};
 
-  // State to track which rows have expanded JSON info
-  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+const LogsPage: React.FC = () => {
+  const { toast } = useToast();
   
   // Filter state
   const [filters, setFilters] = useState<FilterType>({
     userName: '',
     action: '',
     affected: '',
+    searchTerm: '',
     dateRange: {
       type: 'all',
       from: null,
       to: null
     }
   });
+
+  // State to track which rows have expanded JSON info
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+
+  // Fetch logs from API
+  const { data: logsResponse, isLoading, error } = useQuery<LogsResponse>({
+    queryKey: ['logs', filters.searchTerm],
+    queryFn: () => fetchLogs(filters.searchTerm),
+    onError: (error) => {
+      toast({
+        title: "Error fetching logs",
+        description: `Failed to load logs: ${(error as Error).message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const logs = logsResponse?.data || [];
 
   // Toggle expanded state for a row
   const toggleExpand = (id: string) => {
@@ -173,6 +153,7 @@ const LogsPage: React.FC = () => {
       userName: '',
       action: '',
       affected: '',
+      searchTerm: '',
       dateRange: {
         type: 'all',
         from: null,
@@ -181,7 +162,23 @@ const LogsPage: React.FC = () => {
     });
   };
 
-  // Apply filters to logs
+  // Handle search
+  const handleSearch = () => {
+    // Update the searchTerm which will trigger a new API call
+    const { affected, userName, action } = filters;
+    let searchTerm = '';
+    
+    if (affected) searchTerm = affected;
+    if (userName) searchTerm = userName;
+    if (action) searchTerm = action;
+    
+    setFilters(prev => ({
+      ...prev,
+      searchTerm
+    }));
+  };
+
+  // Apply local filters to logs from API
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {
       // Filter by user name
@@ -270,7 +267,7 @@ const LogsPage: React.FC = () => {
                   <SelectValue placeholder="All Users" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="">All Users</SelectItem>
                   {uniqueUserNames.map(name => (
                     <SelectItem key={name} value={name}>{name}</SelectItem>
                   ))}
@@ -289,7 +286,7 @@ const LogsPage: React.FC = () => {
                   <SelectValue placeholder="All Actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Actions</SelectItem>
+                  <SelectItem value="">All Actions</SelectItem>
                   {uniqueActions.map(action => (
                     <SelectItem key={action} value={action}>{action}</SelectItem>
                   ))}
@@ -400,7 +397,7 @@ const LogsPage: React.FC = () => {
             >
               Reset Filters
             </Button>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2" onClick={handleSearch}>
               <Filter className="h-4 w-4" />
               Apply Filters
             </Button>
@@ -422,7 +419,19 @@ const LogsPage: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredLogs.length > 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  Loading logs...
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-red-500">
+                  Error loading logs. Please try again.
+                </TableCell>
+              </TableRow>
+            ) : filteredLogs.length > 0 ? (
               filteredLogs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell className="font-medium">{log.userName}</TableCell>

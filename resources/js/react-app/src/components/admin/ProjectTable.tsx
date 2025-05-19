@@ -9,14 +9,11 @@ interface ProjectTableProps {
 }
 
 const ProjectTable: React.FC<ProjectTableProps> = ({ projects, users }) => {
-  const getManagerNames = (managerIds: string[]) => {
-    if (!managerIds.length) return "None";
+  const getManagerName = (project: Project) => {
+    if (!project.manager_id) return "None";
     
-    const managers = users
-      .filter(user => managerIds.includes(user.id))
-      .map(user => user.name);
-    
-    return managers.join(", ");
+    const manager = users.find(user => String(user.id) === String(project.manager_id));
+    return manager ? manager.name : "None";
   };
 
   return (
@@ -31,10 +28,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({ projects, users }) => {
         </TableHeader>
         <TableBody>
           {projects.map((project) => (
-            <TableRow key={project.id}>
+            <TableRow key={String(project.id)}>
               <TableCell className="font-medium">{project.name}</TableCell>
               <TableCell>{project.location}</TableCell>
-              <TableCell>{getManagerNames(project.managerIds)}</TableCell>
+              <TableCell>
+                {project.manager ? project.manager.name : getManagerName(project)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -1,56 +1,86 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { User } from "../types";
+import * as authService from "../services/authService";
 
 interface AuthContextType {
-    user: User | null;
-    token: string | null;
-    login: (token: string, user: User) => void;
-    logout: () => void;
-    isAuthenticated: boolean;
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  hasPermission: (permissionName: string) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  login: async () => {},
+  logout: () => {},
+  isAuthenticated: false,
+  isLoading: true,
+  hasPermission: () => false,
+});
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+export const useAuth = () => useContext(AuthContext);
 
-    const login = (newToken: string, newUser: User) => {
-        setToken(newToken);
-        setUser(newUser);
-        localStorage.setItem('token', newToken);
-    };
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const logout = () => {
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('token');
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                token,
-                login,
-                logout,
-                isAuthenticated: !!token,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
-};
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
+  useEffect(() => {
+    // Check for saved user in localStorage
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
     }
-    return context;
+    setIsLoading(false);
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const response = await authService.login(email, password);
+      
+      // Save token and user data
+      localStorage.setItem("authToken", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      
+      setUser(response.data.user);
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = () => {
+    authService.logout();
+    setUser(null);
+  };
+  
+  // Helper function to check if user has a specific permission
+  const hasPermission = (permissionName: string): boolean => {
+    if (!user || !user.roles || user.roles.length === 0) return false;
+    
+    // Check if any of the user's roles have the permission
+    return user.roles.some(role => 
+      role.permissions.some(permission => permission.name === permissionName)
+    );
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        isAuthenticated: !!user,
+        isLoading,
+        hasPermission,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
