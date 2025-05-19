@@ -52,9 +52,9 @@ class IssueService
         return $issue->fresh();
     }
 
-    public function exportPdf(array $filters)
+    public function exportPdf(int $id)
     {
-        $issues = $this->repository->listAll($filters);
+        $issues = $this->repository->listAll(['id' => $id]);
         $pdf = Pdf::loadView('pdf.issues', ['issues' => $issues]);
         return $pdf->download('issues.pdf');
     }

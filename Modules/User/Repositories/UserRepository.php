@@ -48,8 +48,11 @@ class UserRepository
     }
 
     public function findByEmail(string $email): ?User
-    {
-        return $this->model->where('email', $email)->first();
+    {// model : represent database table in an object
+        // orm : method to interact with database using object, raw sql,
+        return $this->model  // select * users
+            ->where('email', $email) // where email = $email
+            ->first(); // limit 1
     }
 
     public function list(array $filters=[]): LengthAwarePaginator

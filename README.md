@@ -7,7 +7,7 @@ A modern web application built with Laravel and React, featuring user management
 - PHP 8.3 or higher
 - Node.js 18 or higher
 - Composer
-- MySQL 8.0 or higher
+- POSTGRESQL 16.0 or higher
 - Git
 
 ## Installation
@@ -38,7 +38,7 @@ php artisan key:generate
 
 4. Configure your database in `.env`:
 ```env
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=cit

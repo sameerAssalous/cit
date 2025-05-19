@@ -52,8 +52,8 @@ class IssueController extends Controller
         return response()->json(new IssueResource($issue));
     }
 
-    public function exportPdf(ExportIssueRequest $request)
+    public function exportPdf(ExportIssueRequest $request, int $id)
     {
-        return $this->issueService->exportPdf($request->all());
+        return $this->issueService->exportPdf($id);
     }
 }

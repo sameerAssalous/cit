@@ -32,6 +32,10 @@ class IssueRepository
             $query->where('status', $filters['status']);
         }
 
+        if (isset($filters['id'])) {
+            $query->where('id', $filters['id']);
+        }
+
         if (isset($filters['title'])) {
             $query->where('title', 'like', '%' . $filters['title'] . '%');
         }
