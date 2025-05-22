@@ -3,6 +3,7 @@ namespace Modules\Issue\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Modules\Issue\Requests\CreateCommentRequest;
 use Modules\Issue\Requests\CreateIssueRequest;
 use Modules\Issue\Requests\ExportIssueRequest;
 use Modules\Issue\Requests\UpdateIssueRequest;
@@ -14,7 +15,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class IssueController extends Controller
 {
-    public function __construct(protected IssueService $issueService) {}
+    public function __construct(protected IssueService $issueService)
+    {
+    }
 
     public function index(ListIssuesRequest $request): AnonymousResourceCollection
     {
@@ -55,5 +58,11 @@ class IssueController extends Controller
     public function exportPdf(ExportIssueRequest $request, int $id)
     {
         return $this->issueService->exportPdf($id);
+    }
+
+    public function addComment(CreateCommentRequest $request, int $id)
+    {
+        $comment = $this->issueService->addComment($id, $request->input('comment'), $request->user());
+        return response()->json(['message' => 'Comment added successfully', 'comment' => $comment], 201);
     }
 }

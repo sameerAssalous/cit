@@ -2,6 +2,7 @@
 namespace Modules\Issue\Repositories;
 
 use Illuminate\Pagination\LengthAwarePaginator;
+use Modules\Issue\Models\Comment;
 use Modules\Issue\Models\Issue;
 
 class IssueRepository
@@ -54,5 +55,17 @@ class IssueRepository
     public function delete(Issue $issue): bool
     {
         return $issue->delete();
+    }
+
+    public function addComment(Issue $issue, string $content, $user)
+    {
+        $comment = new  Comment();
+        $comment->issue_id = $issue->id;
+        $comment->user_id = $user->id;
+        $comment->comment = $content;
+        $comment->save();
+
+
+        return $comment;
     }
 }

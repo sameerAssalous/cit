@@ -23,9 +23,9 @@ export interface Project {
 }
 
 export enum IssueStatus {
-  OPEN = "open",
-  IN_PROGRESS = "in_progress",
-  CLOSED = "closed",
+  OPEN = 1,
+  IN_PROGRESS = 2,
+  CLOSED = 4,
 }
 
 export interface Issue {
@@ -39,6 +39,7 @@ export interface Issue {
   projectName: string;
   createdAt: string;
   comments: Comment[];
+  imageUrl?: string;
 }
 
 export interface ApiIssue {
@@ -60,9 +61,23 @@ export interface ApiIssue {
 }
 
 export interface Comment {
-  id: string;
-  text: string;
-  authorId: string;
-  authorName: string;
-  createdAt: string;
+  id: number;
+  issue_id: number;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    roles: Array<{
+      id: number;
+      name: string;
+      permissions: Array<{
+        id: number;
+        name: string;
+      }>;
+    }>;
+    created_at: string;
+    updated_at: string;
+  };
+  comment: string;
+  created_at: string;
 }

@@ -1,7 +1,6 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { User } from "../types";
-import * as authService from "../services/authService";
+import { login as authLogin, logout as authLogout } from "../services/authService";
 
 interface AuthContextType {
   user: User | null;
@@ -39,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await authService.login(email, password);
+      const response = await authLogin(email, password);
       
       // Save token and user data
       localStorage.setItem("authToken", response.data.token);
@@ -55,7 +54,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    authService.logout();
+    authLogout();
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
     setUser(null);
   };
   

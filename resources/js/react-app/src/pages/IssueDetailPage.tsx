@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -8,7 +7,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Issue } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import AppLayout from "@/components/layout/AppLayout";
 import { useLocalization } from "@/context/LocalizationContext";
 
 const IssueDetailPage: React.FC = () => {
@@ -110,22 +108,20 @@ const IssueDetailPage: React.FC = () => {
   };
   
   return (
-    <AppLayout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="mb-6 flex items-center">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/issues")}
-            className="mr-4"
-          >
-            {t("common.back")} to {t("issues.issues")}
-          </Button>
-          <h1 className="text-2xl font-bold">{t("issues.issue_details")}</h1>
-        </div>
-        
-        {renderContent()}
+    <div className="container mx-auto py-8 px-4">
+      <div className="mb-6 flex items-center">
+        <Button
+          variant="outline"
+          onClick={() => navigate("/issues")}
+          className="mr-4"
+        >
+          {t("common.back")} to {t("issues.issues")}
+        </Button>
+        <h1 className="text-2xl font-bold">{t("issues.issue_details")}</h1>
       </div>
-    </AppLayout>
+      
+      {renderContent()}
+    </div>
   );
 };
 

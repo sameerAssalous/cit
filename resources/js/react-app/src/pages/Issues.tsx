@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Issue, IssueStatus, UserRole } from "@/types";
@@ -61,11 +60,13 @@ const Issues: React.FC = () => {
   }, [searchQuery]);
   
   // Fetch issues from API
-  const { data: issues = [], isLoading, error } = useQuery({
+  const { data: issuesResponse, isLoading, error } = useQuery({
     queryKey: ['issues', debouncedSearchQuery],
     queryFn: () => getIssues(debouncedSearchQuery),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  const issues = issuesResponse?.data || [];
 
   useEffect(() => {
     if (error) {

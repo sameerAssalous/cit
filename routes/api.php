@@ -42,6 +42,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('issues/{id}/export', [IssueController::class, 'exportPdf'])
         ->middleware('permission:view-issues');
+
+    Route::post('issues/{id}/comment', [IssueController::class, 'addComment'])
+        ->middleware('permission:create-comments');
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {

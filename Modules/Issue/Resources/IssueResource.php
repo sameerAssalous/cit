@@ -16,12 +16,12 @@ class IssueResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
 
-            'status' => IssueStatus::from($this->status)->name,
+            'status' => $this->status,
             'due_date' => $this->due_date,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'project' => $this->project,
-            'comments' => CommentResource::collection($this->whenLoaded('comments')),
+            'comments' => $this->comments? CommentResource::collection($this->comments) : [],
             'reported_by' => new UserResource($this->reporter),
         ];
     }

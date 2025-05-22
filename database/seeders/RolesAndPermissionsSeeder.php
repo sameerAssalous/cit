@@ -15,7 +15,6 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public function run(): void
     {
-
         $permissions = [
             // User management permissions
             ['name' => 'view-users', 'description' => 'Can view users'],
@@ -101,5 +100,33 @@ class RolesAndPermissionsSeeder extends Seeder
             $permissions = Permission::whereIn('name', $roleData['permissions'])->get();
             $role->permissions()->attach($permissions);
         }
+        $this->createUsersWithRoles();
+    }
+
+    // create three users with different roles
+    public function createUsersWithRoles()
+    {
+        $admin = User::factory()->create([
+            'name' => 'Administratorin',
+            'email' => 'Administratorin@gmail.com',
+            'password' => bcrypt('password'),
+        ]);
+        $admin->roles()->attach(Role::where('name', 'admin')->first());
+
+        $projectManager = User::factory()->create([
+            'name' => 'Managerin',
+            'email' => 'Managerin@gmail.com',
+            'password' => bcrypt('password'),
+        ]);
+        $projectManager->roles()->attach(Role::where('name', 'project_manager')->first());
+
+        $projectManager->save();
+        $employee = User::factory()->create([
+            'name' => 'Arbeitgeberin',
+            'email' => 'Arbeitgeberin@gmail.com',
+            'password' => bcrypt('password'),
+        ]);
+        $employee->roles()->attach(Role::where('name', 'employee')->first());
+        $this->command->info('Users with roles created successfully.');
     }
 }

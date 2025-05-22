@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Issue, IssueStatus, User } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,11 @@ interface IssueDetailProps {
 }
 
 const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }) => {
-  const [status, setStatus] = useState<IssueStatus>(issue.status);
+  const [status, setStatus] = useState<IssueStatus>(typeof issue.status === 'string' ? 
+    issue.status === 'open' ? IssueStatus.OPEN :
+    issue.status === 'in_progress' ? IssueStatus.IN_PROGRESS :
+    issue.status === 'closed' ? IssueStatus.CLOSED : IssueStatus.OPEN
+    : issue.status as IssueStatus);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
@@ -55,7 +58,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
     setIsSubmitting(true);
     
     try {
-      await updateIssueStatus(String(issue.id), newStatus, String(user.id));
+      await updateIssueStatus(String(issue.id), newStatus);
       setStatus(newStatus);
       onIssueUpdated();
       
@@ -82,7 +85,7 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
     setIsSubmitting(true);
     
     try {
-      await addIssueComment(String(issue.id), String(user.id), user.name, comment);
+      await addIssueComment(String(issue.id), comment);
       setComment("");
       onIssueUpdated();
       
@@ -210,10 +213,10 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
               issue.comments.map((comment) => (
                 <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
                   <div className="flex justify-between items-center mb-1">
-                    <p className="font-medium text-sm">{comment.userName}</p>
-                    <p className="text-xs text-gray-500">{formatDate(comment.createdAt)}</p>
+                    <p className="font-medium text-sm">{comment.user.name}</p>
+                    <p className="text-xs text-gray-500">{formatDate(comment.created_at)}</p>
                   </div>
-                  <p className="text-sm text-gray-700">{comment.content}</p>
+                  <p className="text-sm text-gray-700">{comment.comment}</p>
                 </div>
               ))
             )}

@@ -58,4 +58,11 @@ class IssueService
         $pdf = Pdf::loadView('pdf.issues', ['issues' => $issues]);
         return $pdf->download('issues.pdf');
     }
+
+    public function addComment(int $issueId, string $content, $user)
+    {
+        $issue = $this->findIssue($issueId);
+        return $this->repository->addComment($issue, $content, $user);
+
+    }
 }

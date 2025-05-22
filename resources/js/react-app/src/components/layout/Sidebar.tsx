@@ -57,10 +57,10 @@ const MainSidebar = () => {
           <div className="flex items-center justify-center px-4">
             <Link to="/" className="flex items-center gap-2">
               <div className="bg-construction-primary text-white font-bold rounded-md p-2">
-                CIT
+              E.B.
               </div>
               <span className="text-xl font-bold hidden sm:inline group-data-[collapsible=icon]:hidden">
-                Construction Issues
+                E.B. GmbH
               </span>
             </Link>
             {isMobile && (

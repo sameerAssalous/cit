@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation } from "react-router-dom";
@@ -58,7 +57,7 @@ const Dashboard: React.FC = () => {
   // Calculate counts
   const openIssues = allIssues.filter(issue => issue.status === IssueStatus.OPEN || issue.status === 1);
   const inProgressIssues = allIssues.filter(issue => issue.status === IssueStatus.IN_PROGRESS || issue.status === 2);
-  const closedIssues = allIssues.filter(issue => issue.status === IssueStatus.CLOSED || issue.status === 3);
+  const closedIssues = allIssues.filter(issue => issue.status === IssueStatus.CLOSED || issue.status === 4);
   
   // Get unique projects from issues
   const uniqueProjects = [...new Set(allIssues.map(issue => issue.project?.id || issue.projectId))];
@@ -74,7 +73,7 @@ const Dashboard: React.FC = () => {
       const issueStatus = typeof issue.status === 'string' ? issue.status : 
                          issue.status === 1 ? IssueStatus.OPEN :
                          issue.status === 2 ? IssueStatus.IN_PROGRESS :
-                         issue.status === 3 ? IssueStatus.CLOSED : '';
+                         issue.status === 4 ? IssueStatus.CLOSED : '';
 
       const matchesStatus = selectedStatus === "all" || issueStatus === selectedStatus;
       const matchesProject = selectedProject === "all" || 
@@ -116,7 +115,7 @@ const Dashboard: React.FC = () => {
     const normalizedStatus = typeof status === 'number' ? 
       status === 1 ? IssueStatus.OPEN : 
       status === 2 ? IssueStatus.IN_PROGRESS : 
-      status === 3 ? IssueStatus.CLOSED : status : status;
+      status === 4 ? IssueStatus.CLOSED : status : status;
       
     switch (normalizedStatus) {
       case IssueStatus.OPEN:
