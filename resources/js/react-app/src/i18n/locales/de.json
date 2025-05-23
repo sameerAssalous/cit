@@ -1,0 +1,64 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "actions": "Aktionen",
+    "status": "Status",
+    "date": "Datum",
+    "edit": "Bearbeiten",
+    "view": "Anzeigen",
+    "export": "Exportieren",
+    "exporting": "Exportiere...",
+    "back_to_projects": "Zurück zu Projekten",
+    "access_denied": "Zugriff verweigert",
+    "dashboard": "Dashboard",
+    "projects": "Projekte",
+    "issues": "Probleme",
+    "logs": "Protokolle",
+    "users": "Benutzer",
+    "settings": "Einstellungen",
+    "toggle_menu": "Menü umschalten",
+    "close": "Schließen",
+    "app_name": "Bauprojekt-Tracker"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "email_placeholder": "e-mail@beispiel.de",
+    "sign_in": "Anmelden",
+    "logging_in": "Anmeldung läuft...",
+    "login_success": "Anmeldung erfolgreich",
+    "welcome_back": "Willkommen zurück!",
+    "login_failed": "Anmeldung fehlgeschlagen",
+    "invalid_credentials": "Ungültige Anmeldedaten",
+    "demo_accounts": "Demo-Konten"
+  },
+  "projects": {
+    "title": "Projekte",
+    "add_project": "Projekt hinzufügen",
+    "project_list": "Projektliste",
+    "location": "Standort",
+    "manager": "Manager",
+    "no_manager": "Kein Manager zugewiesen",
+    "issues": "Projektprobleme",
+    "not_found": "Projekt nicht gefunden",
+    "not_found_description": "Das gesuchte Projekt existiert nicht oder Sie haben keinen Zugriff.",
+    "no_permission": "Sie haben keine Berechtigung, dieses Projekt anzusehen.",
+    "no_issues": "Noch keine Probleme für dieses Projekt gemeldet",
+    "export_success": "Projektbericht wurde heruntergeladen.",
+    "export_error": "Export des Projektberichts fehlgeschlagen. Bitte versuchen Sie es erneut."
+  },
+  "issues": {
+    "title": "Titel",
+    "reporter": "Reporter",
+    "report_issue": "Problem melden",
+    "status": {
+      "open": "Offen",
+      "in_progress": "In Bearbeitung",
+      "closed": "Geschlossen",
+      "unknown": "Unbekannt"
+    }
+  }
+} 

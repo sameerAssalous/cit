@@ -1,0 +1,64 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "edit": "Edit",
+    "view": "View",
+    "export": "Export",
+    "exporting": "Exporting...",
+    "back_to_projects": "Back to Projects",
+    "access_denied": "Access Denied",
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "issues": "Issues",
+    "logs": "Logs",
+    "users": "Users",
+    "settings": "Settings",
+    "toggle_menu": "Toggle Menu",
+    "close": "Close",
+    "app_name": "Construction Issue Tracker"
+  },
+  "auth": {
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "email_placeholder": "email@example.com",
+    "sign_in": "Sign In",
+    "logging_in": "Logging in...",
+    "login_success": "Login successful",
+    "welcome_back": "Welcome back!",
+    "login_failed": "Login failed",
+    "invalid_credentials": "Invalid credentials",
+    "demo_accounts": "Demo Accounts"
+  },
+  "projects": {
+    "title": "Projects",
+    "add_project": "Add Project",
+    "project_list": "Project List",
+    "location": "Location",
+    "manager": "Manager",
+    "no_manager": "No manager assigned",
+    "issues": "Project Issues",
+    "not_found": "Project Not Found",
+    "not_found_description": "The project you're looking for doesn't exist or you don't have access.",
+    "no_permission": "You don't have permission to view this project.",
+    "no_issues": "No issues reported for this project yet",
+    "export_success": "Project report has been downloaded.",
+    "export_error": "Failed to export project report. Please try again."
+  },
+  "issues": {
+    "title": "Title",
+    "reporter": "Reporter",
+    "report_issue": "Report Issue",
+    "status": {
+      "open": "Open",
+      "in_progress": "In Progress",
+      "closed": "Closed",
+      "unknown": "Unknown"
+    }
+  }
+} 
