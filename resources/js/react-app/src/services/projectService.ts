@@ -1,4 +1,3 @@
-
 import apiClient from "./apiClient";
 import { Project } from "@/types";
 
@@ -34,7 +33,7 @@ interface ProjectQueryParams {
 export const getProjects = async (params?: ProjectQueryParams): Promise<ProjectResponse> => {
   // Build query string from params
   const queryParams = new URLSearchParams();
-  
+
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
@@ -72,6 +71,17 @@ export const deleteProject = async (id: string | number): Promise<void> => {
 };
 
 // Export project as PDF
+export const exportProject = async (id: string | number): Promise<Blob> => {
+  const response = await apiClient.post(`/projects/${id}/export`, {}, {
+    responseType: 'blob',
+    headers: {
+      'Accept': 'application/pdf',
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data;
+};
+
 export const exportProjectPdf = async (id: string | number): Promise<Blob> => {
   const response = await apiClient.post(`/projects/${id}/export`, {}, { responseType: 'blob' });
   return response.data;

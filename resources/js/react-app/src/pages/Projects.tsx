@@ -17,8 +17,10 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import ProjectForm from "@/components/projects/ProjectForm";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 const Projects: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -39,15 +41,15 @@ const Projects: React.FC = () => {
     if (project.manager) {
       return project.manager.name;
     }
-    return "None";
+    return t('common.none');
   };
 
   if (isLoading) {
-    return <div>Loading projects...</div>;
+    return <div>{t('common.loading')}</div>;
   }
 
   if (error) {
-    return <div>Error: {(error as Error).message}</div>;
+    return <div>{t('common.error')}: {(error as Error).message}</div>;
   }
 
   const projects = projectsResponse?.data || [];
@@ -55,29 +57,29 @@ const Projects: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Projects</h1>
+        <h1 className="text-3xl font-bold">{t('projects.title')}</h1>
         <Button onClick={handleAddProject} className="flex items-center gap-2">
           <Plus size={16} />
-          <span>Add Project</span>
+          <span>{t('projects.add_project')}</span>
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Project List</CardTitle>
+          <CardTitle>{t('projects.project_list')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t('common.status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="on-hold">On Hold</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
+                  <SelectItem value="active">{t('projects.in_progress')}</SelectItem>
+                  <SelectItem value="completed">{t('projects.completed')}</SelectItem>
+                  <SelectItem value="on-hold">{t('projects.on_hold')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -85,14 +87,14 @@ const Projects: React.FC = () => {
             <div>
               <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by date" />
+                  <SelectValue placeholder={t('logs.date_range')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="yesterday">Yesterday</SelectItem>
-                  <SelectItem value="week">Last Week</SelectItem>
-                  <SelectItem value="month">Last Month</SelectItem>
+                  <SelectItem value="all">{t('logs.all_time')}</SelectItem>
+                  <SelectItem value="today">{t('logs.today')}</SelectItem>
+                  <SelectItem value="yesterday">{t('logs.yesterday')}</SelectItem>
+                  <SelectItem value="week">{t('logs.custom_range')}</SelectItem>
+                  <SelectItem value="month">{t('logs.custom_range')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -101,10 +103,10 @@ const Projects: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Manager</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('projects.name')}</TableHead>
+                <TableHead>{t('projects.location')}</TableHead>
+                <TableHead>{t('projects.manager')}</TableHead>
+                <TableHead>{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -115,14 +117,14 @@ const Projects: React.FC = () => {
                     <TableCell>{project.location}</TableCell>
                     <TableCell>{getManagerName(project)}</TableCell>
                     <TableCell>
-                      <Link to={`/project/${String(project.id)}`}>View Details</Link>
+                      <Link to={`/project/${String(project.id)}`}>{t('projects.view_details')}</Link>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-4">
-                    No projects found
+                    {t('projects.no_projects')}
                   </TableCell>
                 </TableRow>
               )}

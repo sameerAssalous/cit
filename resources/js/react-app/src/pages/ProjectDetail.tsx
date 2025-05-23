@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProject, getProjects } from "@/services/projectService";
+import { fetchProject, getProjects, exportProject } from "@/services/projectService";
 import { useAuth } from "@/context/AuthContext";
 import { ApiIssue, IssueStatus } from "@/types";
 import { 
@@ -35,24 +35,52 @@ const ProjectDetail: React.FC = () => {
   });
 
   const exportMutation = useMutation({
-    mutationFn: getProjects,
+    mutationFn: (projectId: string) => exportProject(projectId),
     onSuccess: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `project-${projectId}-export.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast({
-        title: "Export successful",
-        description: "Project report has been downloaded.",
-      });
+      try {
+        // Check if the blob is valid
+        if (!(blob instanceof Blob)) {
+          throw new Error('Invalid response format');
+        }
+
+        // Create a blob URL from the response
+        const url = window.URL.createObjectURL(blob);
+        
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Set the filename
+        const filename = `project-${projectId}-export.pdf`;
+        link.setAttribute('download', filename);
+        
+        // Append to body, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Export successful",
+          description: "Project report has been downloaded.",
+        });
+      } catch (error) {
+        console.error('Download error:', error);
+        toast({
+          title: "Download failed",
+          description: "Failed to process the downloaded file. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Export error:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to export project report. Please try again.';
       toast({
         title: "Export failed",
-        description: "Failed to export project report.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
