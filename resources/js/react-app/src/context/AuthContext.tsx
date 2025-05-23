@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { User } from "../types";
-import { login as authLogin, logout as authLogout } from "../services/authService";
-
+import * as authService from "../services/authService";
+console.log("authService =", authService);
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await authLogin(email, password);
+      const response = await authService.login(email, password);
       
       // Save token and user data
       localStorage.setItem("authToken", response.data.token);
@@ -54,19 +54,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    authLogout();
+    authService.logout();
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
     setUser(null);
   };
-  
+
   // Helper function to check if user has a specific permission
   const hasPermission = (permissionName: string): boolean => {
-    if (!user || !user.roles || user.roles.length === 0) return false;
+    if (!user?.roles) return false;
     
     // Check if any of the user's roles have the permission
     return user.roles.some(role => 
-      role.permissions.some(permission => permission.name === permissionName)
+      role.permissions?.some(permission => permission.name === permissionName)
     );
   };
 

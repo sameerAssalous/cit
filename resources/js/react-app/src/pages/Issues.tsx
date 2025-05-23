@@ -61,8 +61,12 @@ const Issues: React.FC = () => {
   
   // Fetch issues from API
   const { data: issuesResponse, isLoading, error } = useQuery({
-    queryKey: ['issues', debouncedSearchQuery],
-    queryFn: () => getIssues(debouncedSearchQuery),
+    queryKey: ['issues', debouncedSearchQuery, selectedStatus, selectedProject, selectedDateRange],
+    queryFn: () => getIssues({
+      search_term: debouncedSearchQuery,
+      status: selectedStatus !== 'all' ? selectedStatus : undefined,
+      project_id: selectedProject !== 'all' ? selectedProject : undefined,
+    }),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -88,12 +92,12 @@ const Issues: React.FC = () => {
       : true;
 
     const matchesProject = selectedProject !== "all" 
-      ? String(issue.projectId) === selectedProject
+      ? String(issue.project?.id || issue.projectId) === selectedProject
       : true;
 
     // Filter by date range
     let matchesDate = true;
-    const issueDate = new Date(issue.createdAt);
+    const issueDate = new Date(issue.createdAt || issue.created_at);
     const today = startOfToday();
     
     if (dateFilter) {
@@ -120,10 +124,16 @@ const Issues: React.FC = () => {
   });
   
   // Get unique projects from issues
-  const uniqueProjects = [...new Set(issues.map(issue => issue.projectId))];
+  const uniqueProjects = [...new Set(issues.map(issue => issue.project?.id || issue.projectId))];
   
-  const getStatusBadge = (status: IssueStatus) => {
-    switch (status) {
+  const getStatusBadge = (status: IssueStatus | number) => {
+    // Convert numerical status to enum if needed
+    const normalizedStatus = typeof status === 'number' ? 
+      status === 1 ? IssueStatus.OPEN : 
+      status === 2 ? IssueStatus.IN_PROGRESS : 
+      status === 4 ? IssueStatus.CLOSED : IssueStatus.OPEN : status;
+      
+    switch (normalizedStatus) {
       case IssueStatus.OPEN:
         return <Badge className="bg-construction-danger">Open</Badge>;
       case IssueStatus.IN_PROGRESS:
@@ -173,7 +183,7 @@ const Issues: React.FC = () => {
           <CardTitle className="text-lg">Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
             <div>
               <InputWithIcon
                 placeholder="Search issues..."
@@ -191,9 +201,9 @@ const Issues: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value={IssueStatus.OPEN}>Open</SelectItem>
-                  <SelectItem value={IssueStatus.IN_PROGRESS}>In Progress</SelectItem>
-                  <SelectItem value={IssueStatus.CLOSED}>Closed</SelectItem>
+                  <SelectItem value={String(IssueStatus.OPEN)}>Open</SelectItem>
+                  <SelectItem value={String(IssueStatus.IN_PROGRESS)}>In Progress</SelectItem>
+                  <SelectItem value={String(IssueStatus.CLOSED)}>Closed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -206,10 +216,12 @@ const Issues: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">All Projects</SelectItem>
                   {uniqueProjects.map(projectId => {
-                    const project = issues.find(issue => issue.projectId === projectId);
-                    const projectName = project ? project.projectName : "Unknown Project";
+                    const project = issues.find(issue => 
+                      (issue.project?.id === projectId) || (issue.projectId === projectId)
+                    )?.project;
+                    const projectName = project?.name || "Unknown Project";
                     return (
-                      <SelectItem key={projectId} value={String(projectId)}>
+                      <SelectItem key={String(projectId)} value={String(projectId)}>
                         {projectName}
                       </SelectItem>
                     );
@@ -310,14 +322,14 @@ const Issues: React.FC = () => {
                   filteredIssues.map((issue) => (
                     <TableRow key={issue.id}>
                       <TableCell className="font-medium max-w-[200px] truncate">{issue.title}</TableCell>
-                      <TableCell>{issue.projectName}</TableCell>
-                      <TableCell>{issue.reporterName}</TableCell>
-                      <TableCell>{formatDate(issue.createdAt)}</TableCell>
+                      <TableCell>{issue.project?.name || "Unknown Project"}</TableCell>
+                      <TableCell>{issue.reported_by?.name || issue.reporterName || "Unknown"}</TableCell>
+                      <TableCell>{formatDate(issue.created_at || issue.createdAt)}</TableCell>
                       <TableCell>{getStatusBadge(issue.status)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <MessageSquare size={14} />
-                          <span>{issue.comments.length}</span>
+                          <span>{issue.comments?.length || 0}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">

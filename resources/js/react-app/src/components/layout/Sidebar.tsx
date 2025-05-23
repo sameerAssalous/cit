@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -13,7 +12,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { UserRole } from "@/types";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -24,11 +22,12 @@ import {
   SidebarMenuButton,
   useSidebar
 } from "@/components/ui/sidebar";
+import { UserRole } from "@/types";
 
 const MainSidebar = () => {
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
 
   if (!user) return null;
   
@@ -91,7 +90,7 @@ const MainSidebar = () => {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
+ {user.role != UserRole.EMPLOYEE &&(
             <SidebarMenuItem>
               <SidebarMenuButton 
                 tooltip="Projects"
@@ -104,7 +103,7 @@ const MainSidebar = () => {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
+ )}
             <SidebarMenuItem>
               <SidebarMenuButton 
                 tooltip="Issues"
@@ -118,7 +117,7 @@ const MainSidebar = () => {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            {(user.role === UserRole.ADMINISTRATOR || user.role === UserRole.PROJECT_MANAGER) && (
+            {user.role == UserRole.ADMINISTRATOR && (
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="Logs"
@@ -133,7 +132,7 @@ const MainSidebar = () => {
               </SidebarMenuItem>
             )}
 
-            {(user.role === UserRole.ADMINISTRATOR) && (
+            {hasPermission("view-users") && (
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="Users"

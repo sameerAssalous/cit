@@ -14,7 +14,7 @@ class CheckPermission
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next, string $permission): Response
-    {
+    {info($request->user()->roles);
         if (!$request->user() || !$request->user()->hasPermission($permission)) {
             return response()->json([
                 'message' => 'You do not have permission to perform this action.',

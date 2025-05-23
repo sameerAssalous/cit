@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchProject, getProjects } from "@/services/projectService";
 import { useAuth } from "@/context/AuthContext";
-import { ApiIssue, IssueStatus, UserRole } from "@/types";
+import { ApiIssue, IssueStatus } from "@/types";
 import { 
   Table, 
   TableBody, 
@@ -23,7 +22,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const ProjectDetail: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -83,14 +82,8 @@ const ProjectDetail: React.FC = () => {
     );
   }
 
-  // Check if user has access to this project
-  const hasAccess = user.role === UserRole.ADMINISTRATOR || 
-    (user.role === UserRole.PROJECT_MANAGER && (
-      user.projectIds?.includes(project.id) || 
-      (project.manager && String(project.manager.id) === String(user.id))
-    ));
-    
-  if (!hasAccess) {
+  // Check if user has permission to view projects
+  if (!hasPermission("view-projects")) {
     return (
       <div className="container mx-auto px-4 py-10 text-center">
         <h1 className="text-3xl font-bold mb-4">Access Denied</h1>
@@ -158,17 +151,19 @@ const ProjectDetail: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          {user.role === UserRole.ADMINISTRATOR && (
+          {hasPermission("edit-projects") && (
             <Button variant="outline" className="flex items-center gap-1">
               <Edit size={16} />
               <span>Edit</span>
             </Button>
           )}
           
-          <Button className="flex items-center gap-1" onClick={handleReportIssue}>
-            <Plus size={16} />
-            <span>Report Issue</span>
-          </Button>
+          {hasPermission("create-issues") && (
+            <Button className="flex items-center gap-1" onClick={handleReportIssue}>
+              <Plus size={16} />
+              <span>Report Issue</span>
+            </Button>
+          )}
         </div>
       </div>
       
@@ -177,16 +172,18 @@ const ProjectDetail: React.FC = () => {
           <CardHeader className="pb-0">
             <div className="flex justify-between items-center">
               <CardTitle>Project Issues</CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1" 
-                onClick={handleExport}
-                disabled={exportMutation.isPending}
-              >
-                <Download size={16} />
-                <span>{exportMutation.isPending ? "Exporting..." : "Export"}</span>
-              </Button>
+              {hasPermission("view-issues") && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1" 
+                  onClick={handleExport}
+                  disabled={exportMutation.isPending}
+                >
+                  <Download size={16} />
+                  <span>{exportMutation.isPending ? "Exporting..." : "Export"}</span>
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -215,16 +212,18 @@ const ProjectDetail: React.FC = () => {
                         <TableCell>{formatDate(issue.created_at)}</TableCell>
                         <TableCell>{getStatusBadge(issue.status)}</TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            asChild
-                          >
-                            <Link to={`/issue/${String(issue.id)}`}>
-                              <Eye size={16} />
-                              <span className="sr-only">View</span>
-                            </Link>
-                          </Button>
+                          {hasPermission("view-issues") && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              asChild
+                            >
+                              <Link to={`/issue/${String(issue.id)}`}>
+                                <Eye size={16} />
+                                <span className="sr-only">View</span>
+                              </Link>
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

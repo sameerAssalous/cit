@@ -46,6 +46,12 @@ class RolesAndPermissionsSeeder extends Seeder
             ['name' => 'view-attachments', 'description' => 'Can view attachments'],
             ['name' => 'upload-attachments', 'description' => 'Can upload attachments'],
             ['name' => 'delete-attachments', 'description' => 'Can delete attachments'],
+
+            // view logs
+            ['name' => 'view-logs', 'description' => 'Can view logs'],
+            ['name' => 'delete-logs', 'description' => 'Can delete logs'],
+            ['name' => 'store-logs', 'description' => 'Can store logs'],
+
         ];
 
         foreach ($permissions as $permission) {

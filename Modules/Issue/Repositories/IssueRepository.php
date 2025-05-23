@@ -43,7 +43,16 @@ class IssueRepository
 
         $perPage = $filters['per_page'] ?? 15;
         $page = $filters['page'] ?? 1;
-
+        if(request()->user()->roles->first()->name == 'project_manager'){
+            // get only issues of user prjects
+            $query->whereHas('project', function ($query) {
+                $query->where('manager_id', request()->user()->id);
+            });
+        }
+        if(request()->user()->roles->first()->name == 'employee'){
+                // get only issues of user prjects
+                $query->where('reported_by', request()->user()->id);
+        }
         return $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
     }
 

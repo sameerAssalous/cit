@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,11 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { IssueStatus, UserRole } from "@/types";
+import { IssueStatus } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { createIssue } from "@/services/issueService";
 import { getProjects } from "@/services/projectService";
-import { getUsers } from "@/services/userService";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -27,14 +25,12 @@ const formSchema = z.object({
   title: z.string().min(3, {
     message: "Title must be at least 3 characters.",
   }),
-  description: z.string().optional(),
-  projectId: z.string().min(1, {
+  description: z.string().min(1, {
+    message: "Description is required.",
+  }),
+  project_id: z.string().min(1, {
     message: "Please select a project.",
   }),
-  reporterId: z.string().min(1, {
-    message: "Please select a reporter.",
-  }),
-  status: z.enum([IssueStatus.OPEN, IssueStatus.IN_PROGRESS, IssueStatus.CLOSED]).default(IssueStatus.OPEN),
 });
 
 interface IssueReportFormProps {
@@ -54,34 +50,22 @@ const IssueReportForm: React.FC<IssueReportFormProps> = ({ initialProjectId, onS
     queryFn: () => getProjects()
   });
 
-  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["users"],
-    queryFn: getUsers
-  });
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      projectId: initialProjectId || "",
-      reporterId: user?.id || "",
-      status: IssueStatus.OPEN,
+      project_id: initialProjectId || "",
     },
     mode: "onChange",
   });
 
-  useEffect(() => {
-    if (user) {
-      form.setValue("reporterId", user.id);
-    }
-  }, [user, form]);
-
   const projectOptions = projectsResponse?.data || [];
-  const reporterOptions = usersData?.data?.filter(user => user.role === UserRole.EMPLOYEE) || [];
 
   const createIssueMutation = useMutation({
-    mutationFn: (data: z.infer<typeof formSchema>) => createIssue(data),
+    mutationFn: (data: z.infer<typeof formSchema>) => {
+      return createIssue(data);
+    },
     onSuccess: () => {
       toast({
         title: "Issue reported successfully!",
@@ -126,10 +110,10 @@ const IssueReportForm: React.FC<IssueReportFormProps> = ({ initialProjectId, onS
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="projectId">Project</Label>
-          <Select disabled={isLoadingProjects} onValueChange={form.setValue.bind(null, "projectId")}>
-            <SelectTrigger id="projectId">
-              <SelectValue placeholder="Select a project" defaultValue={form.getValues("projectId")} />
+          <Label htmlFor="project_id">Project</Label>
+          <Select disabled={isLoadingProjects} onValueChange={form.setValue.bind(null, "project_id")}>
+            <SelectTrigger id="project_id">
+              <SelectValue placeholder="Select a project" defaultValue={form.getValues("project_id")} />
             </SelectTrigger>
             <SelectContent>
               {isLoadingProjects ? (
@@ -145,38 +129,13 @@ const IssueReportForm: React.FC<IssueReportFormProps> = ({ initialProjectId, onS
               )}
             </SelectContent>
           </Select>
-          {form.formState.errors.projectId && (
-            <p className="text-sm text-red-500">{form.formState.errors.projectId.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="reporterId">Reporter</Label>
-          <Select disabled={isLoadingUsers} onValueChange={form.setValue.bind(null, "reporterId")}>
-            <SelectTrigger id="reporterId">
-              <SelectValue placeholder="Select a reporter" defaultValue={form.getValues("reporterId")} />
-            </SelectTrigger>
-            <SelectContent>
-              {isLoadingUsers ? (
-                <SelectItem value="loading" disabled>Loading reporters...</SelectItem>
-              ) : reporterOptions.length > 0 ? (
-                reporterOptions.map((reporter) => (
-                  <SelectItem key={reporter.id} value={String(reporter.id)}>
-                    {reporter.name}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="none" disabled>No reporters available</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-          {form.formState.errors.reporterId && (
-            <p className="text-sm text-red-500">{form.formState.errors.reporterId.message}</p>
+          {form.formState.errors.project_id && (
+            <p className="text-sm text-red-500">{form.formState.errors.project_id.message}</p>
           )}
         </div>
       </div>
 
-      <Button type="submit" disabled={createIssueMutation.isPending || isLoadingProjects || isLoadingUsers}>
+      <Button type="submit" disabled={createIssueMutation.isPending || isLoadingProjects}>
         {createIssueMutation.isPending ? "Submitting..." : "Report Issue"}
       </Button>
     </form>

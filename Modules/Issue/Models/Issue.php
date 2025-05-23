@@ -3,6 +3,7 @@
 namespace Modules\Issue\Models;
 
 use App\Models\User;
+use App\Modules\Issue\Observers\IssueObserver;
 use Database\Factories\IssueFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,10 @@ class Issue extends Model
         'due_date',
     ];
 
+    protected static function booted()
+    {
+        static::observe(IssueObserver::class);
+    }
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

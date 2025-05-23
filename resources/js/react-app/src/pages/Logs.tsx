@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { 
   Table, 
@@ -29,12 +28,14 @@ import { useToast } from "@/components/ui/use-toast";
 
 // Define the log entry type
 interface LogEntry {
-  id: string;
-  userName: string;
+  id: number;
+  user_id: number;
+  user_name: string;
   action: string;
-  affected: string;
+  model_type: string;
+  model_id: number;
   info: Record<string, any>;
-  happenedAt: string;
+  created_at: string;
 }
 
 // API response type
@@ -81,8 +82,8 @@ const LogsPage: React.FC = () => {
   
   // Filter state
   const [filters, setFilters] = useState<FilterType>({
-    userName: '',
-    action: '',
+    userName: 'all',
+    action: 'all',
     affected: '',
     searchTerm: '',
     dateRange: {
@@ -111,7 +112,7 @@ const LogsPage: React.FC = () => {
   const logs = logsResponse?.data || [];
 
   // Toggle expanded state for a row
-  const toggleExpand = (id: string) => {
+  const toggleExpand = (id: number) => {
     setExpandedRows(prev => ({
       ...prev,
       [id]: !prev[id]
@@ -120,7 +121,7 @@ const LogsPage: React.FC = () => {
 
   // Extract unique values for select filters
   const uniqueUserNames = useMemo(() => 
-    Array.from(new Set(logs.map(log => log.userName))),
+    Array.from(new Set(logs.map(log => log.user_name || 'Unknown User'))),
     [logs]
   );
 
@@ -150,8 +151,8 @@ const LogsPage: React.FC = () => {
   // Reset filters
   const resetFilters = () => {
     setFilters({
-      userName: '',
-      action: '',
+      userName: 'all',
+      action: 'all',
       affected: '',
       searchTerm: '',
       dateRange: {
@@ -169,8 +170,8 @@ const LogsPage: React.FC = () => {
     let searchTerm = '';
     
     if (affected) searchTerm = affected;
-    if (userName) searchTerm = userName;
-    if (action) searchTerm = action;
+    if (userName !== 'all') searchTerm = userName;
+    if (action !== 'all') searchTerm = action;
     
     setFilters(prev => ({
       ...prev,
@@ -182,22 +183,22 @@ const LogsPage: React.FC = () => {
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {
       // Filter by user name
-      if (filters.userName && log.userName !== filters.userName) {
+      if (filters.userName !== 'all' && log.user_name !== filters.userName) {
         return false;
       }
 
       // Filter by action
-      if (filters.action && log.action !== filters.action) {
+      if (filters.action !== 'all' && log.action !== filters.action) {
         return false;
       }
 
       // Filter by affected object
-      if (filters.affected && !log.affected.toLowerCase().includes(filters.affected.toLowerCase())) {
+      if (filters.affected && !log.model_type.toLowerCase().includes(filters.affected.toLowerCase())) {
         return false;
       }
 
       // Filter by date range
-      const logDate = parseISO(log.happenedAt);
+      const logDate = parseISO(log.created_at);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -267,8 +268,8 @@ const LogsPage: React.FC = () => {
                   <SelectValue placeholder="All Users" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Users</SelectItem>
-                  {uniqueUserNames.map(name => (
+                  <SelectItem value="all">All Users</SelectItem>
+                  {uniqueUserNames.map((name: string) => (
                     <SelectItem key={name} value={name}>{name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -286,8 +287,8 @@ const LogsPage: React.FC = () => {
                   <SelectValue placeholder="All Actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Actions</SelectItem>
-                  {uniqueActions.map(action => (
+                  <SelectItem value="all">All Actions</SelectItem>
+                  {uniqueActions.map((action: string) => (
                     <SelectItem key={action} value={action}>{action}</SelectItem>
                   ))}
                 </SelectContent>
@@ -431,12 +432,18 @@ const LogsPage: React.FC = () => {
                   Error loading logs. Please try again.
                 </TableCell>
               </TableRow>
-            ) : filteredLogs.length > 0 ? (
+            ) : filteredLogs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-10">
+                  No logs match your filters. Try adjusting your criteria.
+                </TableCell>
+              </TableRow>
+            ) : (
               filteredLogs.map((log) => (
                 <TableRow key={log.id}>
-                  <TableCell className="font-medium">{log.userName}</TableCell>
+                  <TableCell className="font-medium">{log.user_name || 'Unknown User'}</TableCell>
                   <TableCell>{log.action}</TableCell>
-                  <TableCell>{log.affected}</TableCell>
+                  <TableCell>{log.model_type}</TableCell>
                   <TableCell>
                     <Collapsible
                       open={expandedRows[log.id]}
@@ -459,16 +466,10 @@ const LogsPage: React.FC = () => {
                     </Collapsible>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(log.happenedAt), "MMM d, yyyy 'at' h:mm a")}
+                    {format(new Date(log.created_at), "MMM d, yyyy 'at' h:mm a")}
                   </TableCell>
                 </TableRow>
               ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-10">
-                  No logs match your filters. Try adjusting your criteria.
-                </TableCell>
-              </TableRow>
             )}
           </TableBody>
         </Table>

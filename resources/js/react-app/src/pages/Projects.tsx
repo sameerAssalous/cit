@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@/types";
@@ -17,11 +16,14 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 import ProjectForm from "@/components/projects/ProjectForm";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Projects: React.FC = () => {
   const { user } = useAuth();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
   
   const { data: projectsResponse, isLoading, error } = useQuery({
     queryKey: ["projects"],
@@ -65,6 +67,37 @@ const Projects: React.FC = () => {
           <CardTitle>Project List</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="on-hold">On Hold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="yesterday">Yesterday</SelectItem>
+                  <SelectItem value="week">Last Week</SelectItem>
+                  <SelectItem value="month">Last Month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>

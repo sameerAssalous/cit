@@ -15,7 +15,7 @@ import Logs from "./pages/Logs";
 import { AuthProvider } from "./context/AuthContext";
 import ReportIssuePage from "./pages/ReportIssuePage";
 import IssueDetailPage from "./pages/IssueDetailPage";
-import LoginPage from "./pages/Login";
+import Login from "./pages/Login";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuth } from "./context/AuthContext";
 import { LocalizationProvider } from "./context/LocalizationContext";
@@ -49,7 +49,7 @@ function App() {
             <BrowserRouter>
               <Routes>
                 {/* Public routes */}
-                <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                 
                 {/* Special route for report issue - doesn't use AppLayout because it's modal only */}
                 <Route path="/report-issue" element={<ReportIssuePage />} />

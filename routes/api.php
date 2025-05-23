@@ -5,6 +5,7 @@ use Modules\Project\Controllers\ProjectController;
 use Modules\User\Controllers\AuthController;
 use Modules\User\Controllers\UserController;
 use Modules\Issue\Controllers\IssueController;
+use Modules\Tracking\Controllers\TrackingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,8 +34,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('issues', IssueController::class)->middleware([
         'index' => 'permission:view-issues',
         'store' => 'permission:create-issues',
-        'update' => 'permission:edit-issues',
-        'destroy' => 'permission:delete-issues',
+      //  'update' => 'permission:edit-issues',
+       // 'destroy' => 'permission:delete-issues',
     ]);
 
     Route::post('issues/{id}/status', [IssueController::class, 'updateStatus'])
@@ -51,10 +52,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('projects', ProjectController::class)->middleware([
         'index' => 'permission:view-projects',
         'store' => 'permission:create-projects',
-        'update' => 'permission:edit-projects',
-        'destroy' => 'permission:delete-projects',
+       // 'update' => 'permission:edit-projects',
+       // 'destroy' => 'permission:delete-projects',
     ]);
 
     Route::post('projects/{id}/export', [ProjectController::class, 'exportIssues'])
         ->middleware('permission:view-issues');
+});
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::apiResource('tracking', TrackingController::class)->middleware([
+        'index' => 'permission:view-logs',
+        'store' => 'permission:store-logs',
+    ]);
+
 });

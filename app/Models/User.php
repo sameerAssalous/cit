@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Modules\User\Observers\UserObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -48,6 +49,11 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function booted()
+    {
+        static::observe(UserObserver::class);
+    }
+
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class);
@@ -66,6 +72,7 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
+
         return $this->roles()->whereHas('permissions', function ($q) use ($permission) {
             $q->where('name', $permission);
         })->exists();

@@ -13,6 +13,7 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'role' => $this->roles ? $this->roles->first()?->name : null,
             'roles' => $this->roles ?$this->roles->map(fn($role) => [
                 'id' => $role->id,
                 'name' => $role->name,

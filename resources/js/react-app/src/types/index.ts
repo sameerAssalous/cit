@@ -1,7 +1,7 @@
 export enum UserRole {
-  ADMINISTRATOR = "administrator",
+  ADMINISTRATOR = "admin",
   PROJECT_MANAGER = "project_manager",
-  EMPLOYEE = "employee",
+  EMPLOYEE = "employer",
 }
 
 export interface User {
@@ -9,7 +9,9 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  roles?: [{ id: number; name: string }];
+  roles?: [{
+      permissions: any;
+      id: number; name: string }];
   projectIds?: string[];
 }
 
@@ -80,4 +82,11 @@ export interface Comment {
   };
   comment: string;
   created_at: string;
+}
+
+export interface LoginResponse {
+    data: {
+        token: string;
+        user: User;
+    };
 }

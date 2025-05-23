@@ -12,7 +12,7 @@ class TrackingResource extends JsonResource
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user_name' => $this->user?->name ?? '',
             'action' => $this->action,
             'model_type' => $this->model_type,
             'model_id' => $this->model_id,

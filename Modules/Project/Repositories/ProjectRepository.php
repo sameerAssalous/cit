@@ -8,7 +8,14 @@ class ProjectRepository
 {
     public function list()
     {
-        return Project::latest()->paginate(10);
+        $query = Project::latest();
+        if(request()->user()->roles->first()->name == 'project_manager'){
+            // get only issues of user prjects
+                $query->where('manager_id', request()->user()->id);
+        }
+
+
+        return $query->paginate(20);
     }
 
     public function create(array $data)
