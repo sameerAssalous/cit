@@ -73,8 +73,31 @@
       "password_mismatch": "Die Passwörter stimmen nicht überein",
       "invalid_format": "Ungültiges Format für {{field}}"
     }
+    ,    "export": "Exportieren",
+    "exporting": "Exportiere...",
+    "back_to_projects": "Zurück zu Projekten",
+      "dashboard": "Dashboard",
+      "projects": "Projekte",
+      "issues": "Probleme",
+      "logs": "Protokolle",
+      "users": "Benutzer",
+      "settings": "Einstellungen",
+      "toggle_menu": "Menü umschalten",
+      "close": "Schließen",
+      "app_name": "Bauprojekt-Tracker"
   },
   "auth": {
+    "login": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "email_placeholder": "e-mail@beispiel.de",
+    "sign_in": "Anmelden",
+    "logging_in": "Anmeldung läuft...",
+    "login_success": "Anmeldung erfolgreich",
+    "welcome_back": "Willkommen zurück!",
+    "login_failed": "Anmeldung fehlgeschlagen",
+    "invalid_credentials": "Ungültige Anmeldedaten",
+    "demo_accounts": "Demo-Konten",
     "login_title": "Anmelden",
     "register_title": "Registrieren",
     "forgot_password_title": "Passwort zurücksetzen",
@@ -169,7 +192,12 @@
     "severity_critical": "Kritisch",
     "severity_major": "Schwerwiegend",
     "severity_minor": "Geringfügig",
-    "severity_trivial": "Trivial"
+    "severity_trivial": "Trivial",
+    "status": {
+      "open": "Offen",
+      "in_progress": "In Bearbeitung",
+      "closed": "Geschlossen"
+    }
   },
   "projects": {
     "title": "Projekte",
@@ -197,7 +225,9 @@
     "in_progress": "In Bearbeitung",
     "not_started": "Nicht begonnen",
     "on_hold": "Pausiert",
-    "cancelled": "Abgebrochen"
+    "cancelled": "Abgebrochen",
+    "issues": "Projektprobleme"
+
   },
   "settings": {
     "title": "Einstellungen",

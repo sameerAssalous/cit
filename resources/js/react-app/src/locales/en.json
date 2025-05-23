@@ -72,7 +72,17 @@
       "max_length": "{{field}} must be at most {{max}} characters long",
       "password_mismatch": "Passwords do not match",
       "invalid_format": "Invalid format for {{field}}"
-    }
+    },
+  "dashboard": "Dashboard",
+  "projects": "Projects",
+  "issues": "Issues",
+  "logs": "Logs",
+  "users": "Users",
+  "settings": "Settings",
+  "toggle_menu": "Toggle Menu",
+  "close": "Close",
+  "app_name": "Construction Issue Tracker"
+
   },
   "logs": {
     "title": "System Logs",
@@ -126,7 +136,18 @@
     "account_not_verified": "Your account has not been verified",
     "account_already_verified": "Your account has already been verified",
     "account_not_found": "Account not found",
-    "account_already_exists": "Account already exists"
+    "account_already_exists": "Account already exists",
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "email_placeholder": "email@example.com",
+    "sign_in": "Sign In",
+    "logging_in": "Logging in...",
+    "login_success": "Login successful",
+    "welcome_back": "Welcome back!",
+    "login_failed": "Login failed",
+    "invalid_credentials": "Invalid credentials",
+    "demo_accounts": "Demo Accounts"
   },
   "dashboard": {
     "title": "Dashboard",

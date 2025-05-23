@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProject, getProjects, exportProject } from "@/services/projectService";
+import { fetchProject, exportProject } from "@/services/projectService";
 import { useAuth } from "@/context/AuthContext";
-import { ApiIssue, IssueStatus } from "@/types";
+import { ApiIssue, IssueStatus, Project } from "@/types";
 import { 
   Table, 
   TableBody, 
@@ -16,11 +16,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import { ArrowLeft, Download, Edit, Eye, MessageSquare, Plus } from "lucide-react";
+import { ArrowLeft, Download, Edit, Eye, Plus } from "lucide-react";
 import IssueReportModal from "@/components/issue/IssueReportModal";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "react-i18next";
 
 const ProjectDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { projectId } = useParams<{ projectId: string }>();
   const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
@@ -38,48 +40,38 @@ const ProjectDetail: React.FC = () => {
     mutationFn: (projectId: string) => exportProject(projectId),
     onSuccess: (blob) => {
       try {
-        // Check if the blob is valid
         if (!(blob instanceof Blob)) {
           throw new Error('Invalid response format');
         }
 
-        // Create a blob URL from the response
         const url = window.URL.createObjectURL(blob);
-        
-        // Create a temporary link element
         const link = document.createElement('a');
         link.href = url;
-        
-        // Set the filename
         const filename = `project-${projectId}-export.pdf`;
         link.setAttribute('download', filename);
-        
-        // Append to body, click, and remove
         document.body.appendChild(link);
         link.click();
-        
-        // Clean up
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         
         toast({
-          title: "Export successful",
-          description: "Project report has been downloaded.",
+          title: t('common.success'),
+          description: t('projects.export_success'),
         });
       } catch (error) {
         console.error('Download error:', error);
         toast({
-          title: "Download failed",
-          description: "Failed to process the downloaded file. Please try again.",
+          title: t('common.error'),
+          description: t('projects.export_error'),
           variant: "destructive",
         });
       }
     },
     onError: (error: any) => {
       console.error('Export error:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to export project report. Please try again.';
+      const errorMessage = error.response?.data?.message || t('projects.export_error');
       toast({
-        title: "Export failed",
+        title: t('common.error'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -95,36 +87,34 @@ const ProjectDetail: React.FC = () => {
   if (!user) return null;
 
   if (isLoading) {
-    return <div className="container mx-auto px-4 py-6">Loading project details...</div>;
+    return <div className="container mx-auto px-4 py-6">{t('common.loading')}</div>;
   }
   
   if (error || !project) {
     return (
       <div className="container mx-auto px-4 py-10 text-center">
-        <h1 className="text-3xl font-bold mb-4">Project Not Found</h1>
-        <p className="mb-8">The project you're looking for doesn't exist or you don't have access.</p>
+        <h1 className="text-3xl font-bold mb-4">{t('projects.not_found')}</h1>
+        <p className="mb-8">{t('projects.not_found_description')}</p>
         <Button asChild>
-          <Link to="/projects">Back to Projects</Link>
+          <Link to="/projects">{t('common.back_to_projects')}</Link>
         </Button>
       </div>
     );
   }
 
-  // Check if user has permission to view projects
   if (!hasPermission("view-projects")) {
     return (
       <div className="container mx-auto px-4 py-10 text-center">
-        <h1 className="text-3xl font-bold mb-4">Access Denied</h1>
-        <p className="mb-8">You don't have permission to view this project.</p>
+        <h1 className="text-3xl font-bold mb-4">{t('common.access_denied')}</h1>
+        <p className="mb-8">{t('projects.no_permission')}</p>
         <Button asChild>
-          <Link to="/projects">Back to Projects</Link>
+          <Link to="/projects">{t('common.back_to_projects')}</Link>
         </Button>
       </div>
     );
   }
 
   const getStatusBadge = (status: string | number) => {
-    // Convert numerical status to string status
     let statusString: IssueStatus;
     
     if (typeof status === "number") {
@@ -142,18 +132,18 @@ const ProjectDetail: React.FC = () => {
           statusString = IssueStatus.OPEN;
       }
     } else {
-      statusString = status as IssueStatus;
+      statusString = status as unknown as IssueStatus;
     }
     
     switch (statusString) {
       case IssueStatus.OPEN:
-        return <Badge className="bg-construction-danger">Open</Badge>;
+        return <Badge className="bg-construction-danger">{t('issues.status.open')}</Badge>;
       case IssueStatus.IN_PROGRESS:
-        return <Badge className="bg-construction-warning">In Progress</Badge>;
+        return <Badge className="bg-construction-warning">{t('issues.status.in_progress')}</Badge>;
       case IssueStatus.CLOSED:
-        return <Badge className="bg-construction-success">Closed</Badge>;
+        return <Badge className="bg-construction-success">{t('issues.status.closed')}</Badge>;
       default:
-        return <Badge>Unknown</Badge>;
+        return <Badge>{t('issues.status.unknown')}</Badge>;
     }
   };
 
@@ -165,16 +155,16 @@ const ProjectDetail: React.FC = () => {
     <div className="container mx-auto px-4 py-6">
       <Link to="/projects" className="flex items-center text-sm font-medium text-muted-foreground mb-6">
         <ArrowLeft className="h-4 w-4 mr-1" />
-        Back to Projects
+        {t('common.back_to_projects')}
       </Link>
       
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold">{project.name}</h1>
-          <p className="text-gray-600 mb-2">Location: {project.location}</p>
+          <p className="text-gray-600 mb-2">{t('projects.location')}: {project.location}</p>
           <div className="text-sm text-gray-500">
-            <span>Manager: </span>
-            {project.manager ? project.manager.name : "No manager assigned"}
+            <span>{t('projects.manager')}: </span>
+            {project.manager ? project.manager.name : t('projects.no_manager')}
           </div>
         </div>
         
@@ -182,14 +172,14 @@ const ProjectDetail: React.FC = () => {
           {hasPermission("edit-projects") && (
             <Button variant="outline" className="flex items-center gap-1">
               <Edit size={16} />
-              <span>Edit</span>
+              <span>{t('common.edit')}</span>
             </Button>
           )}
           
           {hasPermission("create-issues") && (
             <Button className="flex items-center gap-1" onClick={handleReportIssue}>
               <Plus size={16} />
-              <span>Report Issue</span>
+              <span>{t('issues.report_issue')}</span>
             </Button>
           )}
         </div>
@@ -199,7 +189,7 @@ const ProjectDetail: React.FC = () => {
         <Card>
           <CardHeader className="pb-0">
             <div className="flex justify-between items-center">
-              <CardTitle>Project Issues</CardTitle>
+              <CardTitle>{t('projects.issues')}</CardTitle>
               {hasPermission("view-issues") && (
                 <Button 
                   variant="outline" 
@@ -209,7 +199,7 @@ const ProjectDetail: React.FC = () => {
                   disabled={exportMutation.isPending}
                 >
                   <Download size={16} />
-                  <span>{exportMutation.isPending ? "Exporting..." : "Export"}</span>
+                  <span>{exportMutation.isPending ? t('common.exporting') : t('common.export')}</span>
                 </Button>
               )}
             </div>
@@ -219,11 +209,11 @@ const ProjectDetail: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Reporter</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('issues.title')}</TableHead>
+                    <TableHead>{t('issues.reporter')}</TableHead>
+                    <TableHead>{t('common.date')}</TableHead>
+                    <TableHead>{t('common.status')}</TableHead>
+                    <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -235,7 +225,6 @@ const ProjectDetail: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           {/* Reporter name may not be available in this response */}
-                          {/* So we leave it out for now */}
                         </TableCell>
                         <TableCell>{formatDate(issue.created_at)}</TableCell>
                         <TableCell>{getStatusBadge(issue.status)}</TableCell>
@@ -248,7 +237,7 @@ const ProjectDetail: React.FC = () => {
                             >
                               <Link to={`/issue/${String(issue.id)}`}>
                                 <Eye size={16} />
-                                <span className="sr-only">View</span>
+                                <span className="sr-only">{t('common.view')}</span>
                               </Link>
                             </Button>
                           )}
@@ -258,7 +247,7 @@ const ProjectDetail: React.FC = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                        No issues reported for this project yet
+                        {t('projects.no_issues')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -272,7 +261,7 @@ const ProjectDetail: React.FC = () => {
       <IssueReportModal
         isOpen={isIssueReportModalOpen}
         onClose={() => setIsIssueReportModalOpen(false)}
-        initialProjectId={project.id}
+        initialProjectId={String(project.id)}
       />
     </div>
   );

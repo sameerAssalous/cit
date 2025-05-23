@@ -6,8 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import Logo from "@/components/layout/Logo";
+import { useTranslation } from "react-i18next";
+
+const DEMO_ACCOUNTS = [
+  { email: "Administratorin@gmail.com", role: "Administrator" },
+  { email: "Managerin@gmail.com", role: "Manager" },
+  { email: "Arbeitgeberin@gmail.com", role: "Arbeitgeber" }
+];
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -22,20 +30,25 @@ const Login: React.FC = () => {
     try {
       await login(email, password);
       toast({
-        title: "Login successful",
-        description: "Welcome back!",
+        title: t('auth.login_success'),
+        description: t('auth.welcome_back'),
       });
       navigate("/dashboard");
     } catch (err) {
       toast({
-        title: "Login failed",
-        description: err.message || "Invalid credentials",
+        title: t('auth.login_failed'),
+        description: err.message || t('auth.invalid_credentials'),
         variant: "destructive",
       });
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDemoLogin = (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword("password");
   };
 
   return (
@@ -47,19 +60,19 @@ const Login: React.FC = () => {
               <Logo variant="default" className="mx-auto" />
             </div>
             <CardDescription>
-              Login
+              {t('auth.login')}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="email">
-                  Email
+                  {t('auth.email')}
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder={t('auth.email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -69,7 +82,7 @@ const Login: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="password">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <Input
                   id="password"
@@ -81,6 +94,22 @@ const Login: React.FC = () => {
                   autoComplete="current-password"
                 />
               </div>
+              <div className="space-y-2">
+                <p className="text-sm text-gray-500">{t('auth.demo_accounts')}</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {DEMO_ACCOUNTS.map((account) => (
+                    <Button
+                      key={account.email}
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => handleDemoLogin(account.email)}
+                    >
+                      {account.role}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </CardContent>
             <CardFooter>
               <Button
@@ -88,7 +117,7 @@ const Login: React.FC = () => {
                 className="w-full bg-construction-primary hover:bg-construction-tertiary"
                 disabled={isLoading}
               >
-                {isLoading ? "Logging in..." : "Sign In"}
+                {isLoading ? t('auth.logging_in') : t('auth.sign_in')}
               </Button>
             </CardFooter>
           </form>
