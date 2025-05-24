@@ -17,6 +17,7 @@ class CreateIssueRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'due_date' => ['nullable', 'date'],
+            'attachment' => ['nullable', 'file']
         ];
     }
 }

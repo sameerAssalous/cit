@@ -3,6 +3,7 @@
 namespace Modules\User\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Modules\User\Requests\CreateCommentRequest;
 use Illuminate\Http\JsonResponse;
 use Modules\User\Requests\LoginRequest;
@@ -39,6 +40,24 @@ class AuthController extends Controller
         }
     }
 
+    public function user(): JsonResponse
+    {
+        try {
+
+            return response()->json([
+                'status' => 'success',
+                'message' => '',
+                'data' => [
+                    'user' => new UserResource(request()->user()),
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
     public function logout(): JsonResponse
     {
         try {

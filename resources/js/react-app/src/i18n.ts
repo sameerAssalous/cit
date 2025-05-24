@@ -1,18 +1,12 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-
-// Import translations
-import deTranslations from './locales/de.json';
 import enTranslations from './locales/en.json';
+import deTranslations from './locales/de.json';
 
-// Configure i18next
 i18n
-  // Detect user language
   .use(LanguageDetector)
-  // Pass the i18n instance to react-i18next
   .use(initReactI18next)
-  // Initialize i18next
   .init({
     resources: {
       en: {
@@ -22,15 +16,18 @@ i18n
         translation: deTranslations
       }
     },
-    fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
+    lng: 'de', // Set German as default
+    fallbackLng: 'de', // Fallback to German if translation is missing
+    debug: import.meta.env.DEV,
     interpolation: {
-      escapeValue: false // React already escapes values
+      escapeValue: false
     },
     detection: {
       order: ['localStorage', 'navigator'],
-      caches: ['localStorage']
+      lookupLocalStorage: 'i18nextLng',
+      caches: ['localStorage'],
+      cookieMinutes: 10080, // 7 days
     }
   });
 
-export default i18n; 
+export default i18n;

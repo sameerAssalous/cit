@@ -18,7 +18,20 @@ class IssueService
     public function createIssue(array $data): Issue
     {
         $data['reported_by'] = auth()->id();
-        return $this->repository->create($data);
+        $attachment = $data['attachment'] ?? null;
+        unset($data['attachment']);
+        $issue = $this->repository->create($data);
+        // upload attachment of this issue and save it
+
+        if ($attachment && $attachment instanceof \Illuminate\Http\UploadedFile) {
+            $path = $attachment->store('attachments', 'public');
+            $issue->attachments()->create([
+                'file_path' => $path,
+                'file_name' => $attachment->getClientOriginalName(),
+                'file_type' => $attachment->getClientMimeType(),
+            ]);
+        }
+        return $issue;
     }
 
     public function findIssue(int $id): ?Issue

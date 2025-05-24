@@ -44,6 +44,11 @@ class Issue extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function attachment(): HasMany
+    {
+        return $this->hasMany(Attachment::class);
+    }
+
     public static function newFactory()
     {
         return IssueFactory::new();

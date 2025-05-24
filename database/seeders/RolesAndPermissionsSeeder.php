@@ -112,7 +112,7 @@ class RolesAndPermissionsSeeder extends Seeder
     // create three users with different roles
     public function createUsersWithRoles()
     {
-        $admin = User::factory()->create([
+        $admin = User::factory()->->create([
             'name' => 'Administratorin',
             'email' => 'Administratorin@gmail.com',
             'password' => bcrypt('password'),

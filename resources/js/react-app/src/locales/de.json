@@ -283,5 +283,23 @@
     "no_logs": "Keine Protokolle entsprechen Ihren Filtern. Versuchen Sie, Ihre Kriterien anzupassen.",
     "unknown_user": "Unbekannter Benutzer",
     "search_affected": "Betroffene Objekte suchen"
-  }
+  },
+    "users":
+    {
+        "no_permission": "Sie haben keine Berechtigung, diese Seite anzusehen.",
+        "title": "Benutzer",
+        "subtitle": "Systembenutzer verwalten",
+        "add_user": "Benutzer hinzufügen",
+        "management": "Benutzerverwaltung",
+        "search_placeholder": "Benutzer suchen...",
+        "name": "Name",
+        "email": "E-Mail",
+        "role": "Rolle",
+        "created_at": "Erstellt am",
+        "actions": "Aktionen",
+        "loading": "Benutzer werden geladen...",
+        "edit": "Bearbeiten",
+        "delete": "Löschen",
+        "no_results": "Keine Benutzer gefunden, die Ihrer Suche entsprechen.",
+    }
 }

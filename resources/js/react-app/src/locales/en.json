@@ -274,5 +274,23 @@
     "date_format": "Date Format",
     "time_format": "Time Format",
     "timezone": "Timezone"
-  }
+  },
+    "users" : {
+        "no_permission": "You don't have permission to view this page.",
+        "title": "Users",
+        "subtitle": "Manage system users",
+        "add_user": "Add User",
+        "management": "User Management",
+        "search_placeholder": "Search users...",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "created_at": "Created At",
+        "actions": "Actions",
+        "loading": "Loading users...",
+        "edit": "Edit",
+        "delete": "Delete",
+        "no_results": "No users found matching your search."
+
+    }
 }

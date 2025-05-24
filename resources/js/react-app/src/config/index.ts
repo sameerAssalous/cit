@@ -1,3 +1,3 @@
 export const config = {
-    apiBaseUrl: 'http://127.0.0.1:8000/api',
+    apiBaseUrl: 'http://184.72.206.102/api',
 } as const; 
