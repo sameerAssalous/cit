@@ -31,7 +31,6 @@ class IssueService
                 'file_path' => $path,
                 'file_name' => $attachment->getClientOriginalName(),
                 'file_type' => $attachment->getClientMimeType(),
-                'file_size' => $attachment->getSize(),
             ]);
         }
         return $issue;
