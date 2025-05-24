@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Project\Models\Project;
 
@@ -44,9 +45,9 @@ class Issue extends Model
         return $this->hasMany(Comment::class);
     }
 
-    public function attachment(): HasMany
+    public function attachment(): HasOne
     {
-        return $this->hasMany(Attachment::class);
+        return $this->hasOne(Attachment::class);
     }
 
     public static function newFactory()

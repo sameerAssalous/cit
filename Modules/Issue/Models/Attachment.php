@@ -12,7 +12,8 @@ class Attachment extends Model
         'issue_id',
         'file_path',
         'file_name',
-        'file_type'
+        'file_type',
+        'file_size'
     ];
 
     public function issue(): BelongsTo

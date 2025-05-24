@@ -22,6 +22,7 @@ class IssueResource extends JsonResource
             'updated_at' => $this->updated_at,
             'project' => $this->project,
             'comments' => $this->comments? CommentResource::collection($this->comments) : [],
+            'attachment' => $this->attachment ? asset('storage/'.$this->attachment->file_path) : null,
             'reported_by' => new UserResource($this->reporter),
         ];
     }

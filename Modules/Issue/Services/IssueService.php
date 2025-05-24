@@ -1,6 +1,7 @@
 <?php
 namespace Modules\Issue\Services;
 
+use Modules\Issue\Models\Attachment;
 use Modules\Issue\Models\Issue;
 use Modules\Issue\Repositories\IssueRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -25,10 +26,12 @@ class IssueService
 
         if ($attachment && $attachment instanceof \Illuminate\Http\UploadedFile) {
             $path = $attachment->store('attachments', 'public');
-            $issue->attachments()->create([
+            $attachments = Attachment::query()->create([
+                'issue_id' => $issue->id,
                 'file_path' => $path,
                 'file_name' => $attachment->getClientOriginalName(),
                 'file_type' => $attachment->getClientMimeType(),
+                'file_size' => $attachment->getSize(),
             ]);
         }
         return $issue;
