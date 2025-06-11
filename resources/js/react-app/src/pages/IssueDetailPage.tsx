@@ -2,15 +2,31 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { getIssue } from "@/services/issueService";
-import IssueDetail from "@/components/issue/IssueDetail";
+import { IssueDetail } from "@/components/issue/IssueDetail";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Issue } from "@/types";
+import { Issue, ApiIssue } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalization } from "@/context/LocalizationContext";
 
+const transformApiIssueToIssue = (apiIssue: ApiIssue): Issue => {
+  return {
+    id: String(apiIssue.id),
+    title: apiIssue.title,
+    description: apiIssue.description,
+    status: Number(apiIssue.status),
+    reporterId: String(apiIssue.reporter_id),
+    reporterName: apiIssue.reporterName || apiIssue.reported_by?.name || 'Unknown',
+    projectId: String(apiIssue.project_id),
+    projectName: apiIssue.projectName || apiIssue.project?.name || 'Unknown',
+    createdAt: apiIssue.createdAt || apiIssue.created_at,
+    comments: apiIssue.comments || [],
+    imageUrl: apiIssue.attachment || undefined
+  };
+};
+
 const IssueDetailPage: React.FC = () => {
-  const { issueId } = useParams<{ issueId: string }>();
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useLocalization();
@@ -25,22 +41,22 @@ const IssueDetailPage: React.FC = () => {
       setError(null);
       
       try {
-        if (!issueId || !user) {
+        if (!id || !user) {
           throw new Error("Missing issue ID or user not authenticated");
         }
         
         // Check if user has permission to view this issue
-        //if (!canUserAccessIssue(user, issueId)) {
+        //if (!canUserAccessIssue(user, id)) {
         //  throw new Error("You don't have permission to view this issue");
         //}
         
-        const fetchedIssue = await getIssue(issueId);
+        const fetchedIssue = await getIssue(id);
         
         if (!fetchedIssue) {
           throw new Error("Issue not found");
         }
         
-        setIssue(fetchedIssue);
+        setIssue(transformApiIssueToIssue(fetchedIssue));
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -49,15 +65,15 @@ const IssueDetailPage: React.FC = () => {
     };
     
     loadIssue();
-  }, [issueId, user]);
+  }, [id, user]);
   
   const handleIssueUpdated = async () => {
-    if (!issueId) return;
+    if (!id) return;
     
     try {
-      const updatedIssue = await getIssue(issueId);
+      const updatedIssue = await getIssue(id);
       if (updatedIssue) {
-        setIssue(updatedIssue);
+        setIssue(transformApiIssueToIssue(updatedIssue));
       }
     } catch (err) {
       console.error("Failed to refresh issue:", err);

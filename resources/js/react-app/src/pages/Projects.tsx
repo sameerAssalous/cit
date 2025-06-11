@@ -117,7 +117,7 @@ const Projects: React.FC = () => {
                     <TableCell>{project.location}</TableCell>
                     <TableCell>{getManagerName(project)}</TableCell>
                     <TableCell>
-                      <Link to={`/project/${String(project.id)}`}>{t('projects.view_details')}</Link>
+                      <Link to={`/projects/${String(project.id)}`}>{t('projects.view_details')}</Link>
                     </TableCell>
                   </TableRow>
                 ))

@@ -86,7 +86,7 @@ const MainSidebar = () => {
                 asChild 
                 isActive={isActive("/")}
               >
-                <Link to="/">
+                <Link to="/dashboard">
                   <LayoutDashboard className="h-5 w-5" />
                   <span>{t('common.dashboard')}</span>
                 </Link>
@@ -136,7 +136,7 @@ const MainSidebar = () => {
               </SidebarMenuItem>
             )}
 
-            {hasPermission("view-users") && (
+            {user.role == UserRole.ADMINISTRATOR && (
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip={t('common.users')}

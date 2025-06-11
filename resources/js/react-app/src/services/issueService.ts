@@ -1,4 +1,3 @@
-
 import apiClient from "./apiClient";
 import { ApiIssue } from "@/types";
 
@@ -57,7 +56,12 @@ export const getIssue = async (id: string | number): Promise<ApiIssue> => {
 
 // Create a new issue
 export const createIssue = async (issueData: any): Promise<ApiIssue> => {
-  const response = await apiClient.post('/issues', issueData);
+  const config = {
+    headers: {
+      'Content-Type': issueData instanceof FormData ? undefined : 'application/json',
+    },
+  };
+  const response = await apiClient.post('/issues', issueData, config);
   return response.data;
 };
 

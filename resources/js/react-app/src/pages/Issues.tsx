@@ -35,8 +35,10 @@ import IssueReportModal from "@/components/issue/IssueReportModal";
 import { useToast } from "@/hooks/use-toast";
 import { getIssues } from "@/services/issueService";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 const Issues: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -75,13 +77,13 @@ const Issues: React.FC = () => {
   useEffect(() => {
     if (error) {
       toast({
-        title: "Error loading issues",
-        description: "Could not load issues. Please try again.",
+        title: t('issues.error_loading_title'),
+        description: t('issues.error_loading_description'),
         variant: "destructive"
       });
       console.error("Error loading issues:", error);
     }
-  }, [error, toast]);
+  }, [error, toast, t]);
   
   if (!user) return null;
   
@@ -127,7 +129,6 @@ const Issues: React.FC = () => {
   const uniqueProjects = [...new Set(issues.map(issue => issue.project?.id || issue.projectId))];
   
   const getStatusBadge = (status: IssueStatus | number) => {
-    // Convert numerical status to enum if needed
     const normalizedStatus = typeof status === 'number' ? 
       status === 1 ? IssueStatus.OPEN : 
       status === 2 ? IssueStatus.IN_PROGRESS : 
@@ -135,13 +136,13 @@ const Issues: React.FC = () => {
       
     switch (normalizedStatus) {
       case IssueStatus.OPEN:
-        return <Badge className="bg-construction-danger">Open</Badge>;
+        return <Badge className="bg-construction-danger">{t('issues.status.open')}</Badge>;
       case IssueStatus.IN_PROGRESS:
-        return <Badge className="bg-construction-warning">In Progress</Badge>;
+        return <Badge className="bg-construction-warning">{t('issues.status.in_progress')}</Badge>;
       case IssueStatus.CLOSED:
-        return <Badge className="bg-construction-success">Closed</Badge>;
+        return <Badge className="bg-construction-success">{t('issues.status.closed')}</Badge>;
       default:
-        return <Badge>Unknown</Badge>;
+        return <Badge>{t('issues.status.unknown')}</Badge>;
     }
   };
 
@@ -165,8 +166,8 @@ const Issues: React.FC = () => {
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Issues</h1>
-          <p className="text-gray-600">Track and manage construction issues</p>
+          <h1 className="text-3xl font-bold">{t('issues.title')}</h1>
+          <p className="text-gray-600">{t('issues.description')}</p>
         </div>
         
         <Button 
@@ -174,19 +175,19 @@ const Issues: React.FC = () => {
           onClick={handleReportIssueClick}
         >
           <Plus size={16} />
-          <span>Report Issue</span>
+          <span>{t('issues.report_issue')}</span>
         </Button>
       </div>
 
       <Card className="mb-6">
         <CardHeader className="pb-0">
-          <CardTitle className="text-lg">Filters</CardTitle>
+          <CardTitle className="text-lg">{t('issues.filters')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
             <div>
               <InputWithIcon
-                placeholder="Search issues..."
+                placeholder={t('issues.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -197,13 +198,13 @@ const Issues: React.FC = () => {
             <div>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t('issues.filter_by_status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value={String(IssueStatus.OPEN)}>Open</SelectItem>
-                  <SelectItem value={String(IssueStatus.IN_PROGRESS)}>In Progress</SelectItem>
-                  <SelectItem value={String(IssueStatus.CLOSED)}>Closed</SelectItem>
+                  <SelectItem value="all">{t('issues.status.all')}</SelectItem>
+                  <SelectItem value={IssueStatus.OPEN}>{t('issues.status.open')}</SelectItem>
+                  <SelectItem value={IssueStatus.IN_PROGRESS}>{t('issues.status.in_progress')}</SelectItem>
+                  <SelectItem value={IssueStatus.CLOSED}>{t('issues.status.closed')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -211,21 +212,15 @@ const Issues: React.FC = () => {
             <div>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by project" />
+                  <SelectValue placeholder={t('issues.filter_by_project')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {uniqueProjects.map(projectId => {
-                    const project = issues.find(issue => 
-                      (issue.project?.id === projectId) || (issue.projectId === projectId)
-                    )?.project;
-                    const projectName = project?.name || "Unknown Project";
-                    return (
-                      <SelectItem key={String(projectId)} value={String(projectId)}>
-                        {projectName}
-                      </SelectItem>
-                    );
-                  })}
+                  <SelectItem value="all">{t('issues.projects.all')}</SelectItem>
+                  {uniqueProjects.map((projectId) => (
+                    <SelectItem key={projectId} value={String(projectId)}>
+                      {issues.find(issue => String(issue.project?.id || issue.projectId) === String(projectId))?.project?.name || t('issues.unknown_project')}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -233,116 +228,119 @@ const Issues: React.FC = () => {
             <div>
               <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by date" />
+                  <SelectValue placeholder={t('issues.filter_by_date')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="yesterday">Yesterday</SelectItem>
-                  <SelectItem value="week">Last Week</SelectItem>
-                  <SelectItem value="month">Last Month</SelectItem>
+                  <SelectItem value="all">{t('issues.date.all')}</SelectItem>
+                  <SelectItem value="today">{t('issues.date.today')}</SelectItem>
+                  <SelectItem value="yesterday">{t('issues.date.yesterday')}</SelectItem>
+                  <SelectItem value="week">{t('issues.date.this_week')}</SelectItem>
+                  <SelectItem value="month">{t('issues.date.this_month')}</SelectItem>
+                  <SelectItem value="custom">{t('issues.date.custom')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            <div>
+          {selectedDateRange === 'custom' && (
+            <div className="mt-4">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={"outline"}
+                    variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
                       !dateFilter && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFilter ? format(dateFilter, "PPP") : <span>Pick a date</span>}
+                    {dateFilter ? format(dateFilter, "PPP") : t('issues.select_date')}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={dateFilter}
                     onSelect={handleDateSelect}
                     initialFocus
-                    className={cn("p-3 pointer-events-auto")}
                   />
-                  {dateFilter && (
-                    <div className="p-3 border-t border-border">
-                      <Button variant="outline" size="sm" onClick={clearDate} className="w-full">
-                        Clear date
-                      </Button>
-                    </div>
-                  )}
                 </PopoverContent>
               </Popover>
+              {dateFilter && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2"
+                  onClick={clearDate}
+                >
+                  {t('issues.clear_date')}
+                </Button>
+              )}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-0">
-          <div className="flex justify-between items-center">
-            <CardTitle>Issue List</CardTitle>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <Download size={16} />
-              <span>Export</span>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-hidden mt-4">
+        <CardContent className="p-0">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Reporter</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Comments</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('issues.table.title')}</TableHead>
+                  <TableHead>{t('issues.table.project')}</TableHead>
+                  <TableHead>{t('issues.table.reporter')}</TableHead>
+                  <TableHead>{t('issues.table.date')}</TableHead>
+                  <TableHead>{t('issues.table.status')}</TableHead>
+                  <TableHead className="text-right">{t('issues.table.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                      Loading issues...
+                    <TableCell colSpan={6} className="text-center py-8">
+                      {t('issues.loading')}
                     </TableCell>
                   </TableRow>
                 ) : filteredIssues.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                      No issues found matching your criteria
+                    <TableCell colSpan={6} className="text-center py-8">
+                      {t('issues.no_issues_found')}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredIssues.map((issue) => (
-                    <TableRow key={issue.id}>
-                      <TableCell className="font-medium max-w-[200px] truncate">{issue.title}</TableCell>
-                      <TableCell>{issue.project?.name || "Unknown Project"}</TableCell>
-                      <TableCell>{issue.reported_by?.name || issue.reporterName || "Unknown"}</TableCell>
-                      <TableCell>{formatDate(issue.created_at || issue.createdAt)}</TableCell>
-                      <TableCell>{getStatusBadge(issue.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare size={14} />
-                          <span>{issue.comments?.length || 0}</span>
-                        </div>
+                    <TableRow key={String(issue.id)}>
+                      <TableCell className="font-medium max-w-[250px] truncate">
+                        {issue.title}
                       </TableCell>
+                      <TableCell>
+                        {issue.project?.name || t('issues.unknown_project')}
+                      </TableCell>
+                      <TableCell>
+                        {issue.reporterName || t('issues.unknown_reporter')}
+                      </TableCell>
+                      <TableCell>{formatDate(issue.createdAt || issue.created_at)}</TableCell>
+                      <TableCell>{getStatusBadge(issue.status)}</TableCell>
                       <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          asChild
-                        >
-                          <Link to={`/issue/${issue.id}`}>
-                            <Eye size={16} />
-                            <span className="sr-only">View</span>
-                          </Link>
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                          >
+                            <Link to={`/issues/${String(issue.id)}`}>
+                              <Eye size={16} />
+                              <span className="sr-only">{t('issues.view_details')}</span>
+                            </Link>
+                          </Button>
+                          {issue.comments && issue.comments.length > 0 && (
+                            <Badge variant="secondary" className="flex items-center gap-1">
+                              <MessageSquare size={14} />
+                              {issue.comments.length}
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -353,11 +351,9 @@ const Issues: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Issue Report Modal */}
       <IssueReportModal
         isOpen={isIssueReportModalOpen}
         onClose={() => setIsIssueReportModalOpen(false)}
-        initialProjectId={undefined}
       />
     </div>
   );

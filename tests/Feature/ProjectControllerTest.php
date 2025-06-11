@@ -2,7 +2,9 @@
 
 namespace Feature;
 
-class ProjectControllerTest
+use PHPUnit\Framework\TestCase;
+
+class ProjectControllerTest extends  TestCase
 {
 
 }

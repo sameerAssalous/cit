@@ -93,14 +93,14 @@ class IssueControllerTest extends TestCase
         $response = $this->actingAs($this->authUser)->postJson("/api/issues/{$issue->id}/status", $payload);
 
         $response->assertOk()
-            ->assertJsonPath('status', 'CLOSED');
+            ->assertJsonPath('status', 4);
     }
 
     public function test_exports_issue_pdf()
     {
-        $issue = Issue::factory()->create();
+        $issue = Issue::factory()->create(['status'=> 2]);
 
-        $response = $this->actingAs($this->authUser)->get("/api/issues/{$issue->id}/export");
+        $response = $this->actingAs($this->authUser)->post("/api/issues/{$issue->id}/export");
 
         $response->assertOk();
         $this->assertTrue(str_contains($response->headers->get('content-type'), 'application/pdf'));

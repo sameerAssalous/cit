@@ -4,15 +4,26 @@ export enum UserRole {
   EMPLOYEE = "employer",
 }
 
+export interface Permission {
+  id: number;
+  name: string;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  permissions: Permission[];
+}
+
 export interface User {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   role: UserRole;
-  roles?: [{
-      permissions: any;
-      id: number; name: string }];
+  roles?: Role[];
   projectIds?: string[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Project {
@@ -22,6 +33,7 @@ export interface Project {
   description: string;
   manager_id: string | number | null;
   manager?: User;
+  issues?: Issue[];
 }
 
 export enum IssueStatus {
@@ -60,6 +72,7 @@ export interface ApiIssue {
   projectName?: string;
   projectId?: number;
   createdAt?: string;
+  attachment?: string;
 }
 
 export interface Comment {
@@ -85,8 +98,25 @@ export interface Comment {
 }
 
 export interface LoginResponse {
-    data: {
-        token: string;
-        user: User;
-    };
+  data: {
+    token: string;
+    user: User;
+  };
+}
+
+export interface ProfileResponse {
+  data: {
+    user: User;
+  };
+}
+
+export interface UsersResponse {
+  data: User[];
+}
+
+export interface CreateUserRequest {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
 }

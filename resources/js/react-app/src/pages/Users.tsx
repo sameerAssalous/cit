@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 import { 
   Table, 
   TableBody, 
@@ -26,6 +26,7 @@ import { getUsers } from "@/services/userService";
 import { useToast } from "@/components/ui/use-toast";
 
 const Users: React.FC = () => {
+  const { t } = useTranslation();
   const { user, hasPermission } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +57,7 @@ const Users: React.FC = () => {
   }, [toast]);
   
   if (!user || !hasPermission("view-users")) {
-    return <div className="p-8">You don't have permission to view this page.</div>;
+    return <div className="p-8">{t('users.no_permission')}</div>;
   }
 
   // Filter users based on search
@@ -105,14 +106,14 @@ const Users: React.FC = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold">Users</h1>
-            <p className="text-gray-600">Manage system users</p>
+            <h1 className="text-3xl font-bold">{t('users.title')}</h1>
+            <p className="text-gray-600">{t('users.subtitle')}</p>
           </div>
           
           {hasPermission("create-users") && (
             <Button className="flex items-center gap-2" onClick={handleAddUser}>
               <Plus size={16} />
-              <span>Add User</span>
+              <span>{t('users.add_user')}</span>
             </Button>
           )}
         </div>
@@ -120,9 +121,9 @@ const Users: React.FC = () => {
         <Card>
           <CardHeader className="pb-0">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-              <CardTitle>User Management</CardTitle>
+              <CardTitle>{t('users.management')}</CardTitle>
               <Input
-                placeholder="Search users..."
+                placeholder={t('users.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-xs"
@@ -134,12 +135,12 @@ const Users: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="hidden md:table-cell">Created At</TableHead>
+                    <TableHead>{t('users.name')}</TableHead>
+                    <TableHead>{t('users.email')}</TableHead>
+                    <TableHead>{t('users.role')}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t('users.created_at')}</TableHead>
                     {hasPermission("edit-users") && (
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-right">{t('users.actions')}</TableHead>
                     )}
                   </TableRow>
                 </TableHeader>
@@ -147,7 +148,7 @@ const Users: React.FC = () => {
                   {isLoading ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-10">
-                        Loading users...
+                        {t('users.loading')}
                       </TableCell>
                     </TableRow>
                   ) : filteredUsers.length > 0 ? (
@@ -169,7 +170,7 @@ const Users: React.FC = () => {
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">
                                   <MoreHorizontal size={16} />
-                                  <span className="sr-only">Actions</span>
+                                  <span className="sr-only">{t('users.actions')}</span>
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
@@ -179,13 +180,13 @@ const Users: React.FC = () => {
                                     onClick={() => handleEditUser(u.id)}
                                   >
                                     <Edit size={14} />
-                                    <span>Edit</span>
+                                    <span>{t('users.edit')}</span>
                                   </DropdownMenuItem>
                                 )}
                                 {hasPermission("delete-users") && (
                                   <DropdownMenuItem className="flex items-center gap-2 text-red-600">
                                     <Trash2 size={14} />
-                                    <span>Delete</span>
+                                    <span>{t('users.delete')}</span>
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -197,7 +198,7 @@ const Users: React.FC = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-10">
-                        No users found matching your search.
+                        {t('users.no_results')}
                       </TableCell>
                     </TableRow>
                   )}

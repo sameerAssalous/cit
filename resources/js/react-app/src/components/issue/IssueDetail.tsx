@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDate } from "@/lib/utils";
 import { updateIssueStatus, addIssueComment, exportIssuePdf } from "@/services/issueService";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface IssueDetailProps {
   issue: Issue;
@@ -15,7 +16,8 @@ interface IssueDetailProps {
   onIssueUpdated: () => void;
 }
 
-const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }) => {
+export const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }) => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<IssueStatus>(typeof issue.status === 'string' ? 
     issue.status === 'open' ? IssueStatus.OPEN :
     issue.status === 'in_progress' ? IssueStatus.IN_PROGRESS :
@@ -42,13 +44,13 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
   const getStatusText = (status: IssueStatus) => {
     switch (status) {
       case IssueStatus.OPEN:
-        return "Open";
+        return t('issues.status.open');
       case IssueStatus.IN_PROGRESS:
-        return "In Progress";
+        return t('issues.status.in_progress');
       case IssueStatus.CLOSED:
-        return "Closed";
+        return t('issues.status.closed');
       default:
-        return "Unknown";
+        return t('issues.status.unknown');
     }
   };
 
@@ -63,13 +65,13 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
       onIssueUpdated();
       
       toast({
-        title: "Status updated",
-        description: `Issue status changed to ${getStatusText(newStatus)}.`
+        title: t('issues.status_update_success_title'),
+        description: t('issues.status_update_success_description', { status: getStatusText(newStatus) })
       });
     } catch (error) {
       toast({
-        title: "Error updating status",
-        description: "Failed to update issue status. Please try again.",
+        title: t('issues.status_update_error_title'),
+        description: t('issues.status_update_error_description'),
         variant: "destructive"
       });
       console.error(error);
@@ -90,13 +92,13 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
       onIssueUpdated();
       
       toast({
-        title: "Comment added",
-        description: "Your comment has been added to the issue."
+        title: t('issues.comment_add_success_title'),
+        description: t('issues.comment_add_success_description')
       });
     } catch (error) {
       toast({
-        title: "Error adding comment",
-        description: "Failed to add comment. Please try again.",
+        title: t('issues.comment_add_error_title'),
+        description: t('issues.comment_add_error_description'),
         variant: "destructive"
       });
       console.error(error);
@@ -120,13 +122,13 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
       URL.revokeObjectURL(url);
       
       toast({
-        title: "PDF Generated",
-        description: "The PDF has been generated and downloaded."
+        title: t('issues.pdf_generate_success_title'),
+        description: t('issues.pdf_generate_success_description')
       });
     } catch (error) {
       toast({
-        title: "Error generating PDF",
-        description: "Failed to generate PDF. Please try again.",
+        title: t('issues.pdf_generate_error_title'),
+        description: t('issues.pdf_generate_error_description'),
         variant: "destructive"
       });
       console.error("Error generating PDF:", error);
@@ -148,27 +150,27 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
       
       <CardContent className="pt-6 space-y-6">
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Project</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('issues.project')}</h3>
           <p className="text-gray-700">{issue.projectName}</p>
         </div>
         
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Reported By</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('issues.reported_by')}</h3>
           <p className="text-gray-700">{issue.reporterName}</p>
           <p className="text-xs text-gray-500">{formatDate(issue.createdAt)}</p>
         </div>
         
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">{t('issues.description')}</h3>
           <p className="text-gray-700 whitespace-pre-wrap">{issue.description}</p>
         </div>
         
         {issue.imageUrl && (
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Attached Image</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">{t('issues.attached_image')}</h3>
             <img
               src={issue.imageUrl}
-              alt="Issue attachment"
+              alt={t('issues.attachment_alt')}
               className="max-h-96 rounded-md border border-gray-200"
             />
           </div>
@@ -176,16 +178,17 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
         
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium">Status</h3>
+            <h3 className="text-sm font-medium">{t('issues.status_label')}</h3>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleGeneratePdf}
               disabled={isPdfGenerating}
             >
-              {isPdfGenerating ? "Generating PDF..." : "Export as PDF"}
+              {isPdfGenerating ? t('issues.generating_pdf') : t('issues.export_pdf')}
             </Button>
           </div>
+        
           
           <Select
             value={status}
@@ -193,57 +196,49 @@ const IssueDetail: React.FC<IssueDetailProps> = ({ issue, user, onIssueUpdated }
             disabled={isSubmitting}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Status" />
+              <SelectValue placeholder={t('issues.select_status')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={IssueStatus.OPEN}>Open</SelectItem>
-              <SelectItem value={IssueStatus.IN_PROGRESS}>In Progress</SelectItem>
-              <SelectItem value={IssueStatus.CLOSED}>Closed</SelectItem>
+              <SelectItem value={IssueStatus.OPEN}>{t('issues.status.open')}</SelectItem>
+              <SelectItem value={IssueStatus.IN_PROGRESS}>{t('issues.status.in_progress')}</SelectItem>
+              <SelectItem value={IssueStatus.CLOSED}>{t('issues.status.closed')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div>
-          <h3 className="font-medium mb-3">Comments ({issue.comments.length})</h3>
+          <h3 className="text-sm font-medium mb-4">{t('issues.comments')}</h3>
           
-          <div className="space-y-4">
-            {issue.comments.length === 0 ? (
-              <p className="text-gray-500 text-sm">No comments yet.</p>
-            ) : (
-              issue.comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="font-medium text-sm">{comment.user.name}</p>
-                    <p className="text-xs text-gray-500">{formatDate(comment.created_at)}</p>
-                  </div>
-                  <p className="text-sm text-gray-700">{comment.comment}</p>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="font-medium mb-2">Add Comment</h3>
-          <form onSubmit={handleCommentSubmit}>
+          <form onSubmit={handleCommentSubmit} className="space-y-4">
             <Textarea
+              placeholder={t('issues.comment_placeholder')}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Add your comment..."
-              className="min-h-[100px] mb-2"
+              disabled={isSubmitting}
             />
             <Button 
               type="submit" 
-              className="w-full"
-              disabled={!comment.trim() || isSubmitting}
+              disabled={isSubmitting || !comment.trim()}
             >
-              {isSubmitting ? "Adding Comment..." : "Add Comment"}
+              {isSubmitting ? t('issues.submitting') : t('issues.add_comment')}
             </Button>
           </form>
+          
+          <div className="mt-6 space-y-4">
+            {issue.comments.map((comment) => (
+              <div key={comment.id} className="border rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="font-medium">{comment.user.name}</p>
+                    <p className="text-xs text-gray-500">{formatDate(comment.created_at)}</p>
+                  </div>
+                </div>
+                <p className="text-gray-700">{comment.comment}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 };
-
-export default IssueDetail;

@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 
 const ProjectDetail: React.FC = () => {
   const { t } = useTranslation();
-  const { projectId } = useParams<{ projectId: string }>();
+  const { id } = useParams<{ id: string }>();
   const { user, hasPermission } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -31,9 +31,9 @@ const ProjectDetail: React.FC = () => {
   const [isIssueReportModalOpen, setIsIssueReportModalOpen] = useState(false);
   
   const { data: project, isLoading, error } = useQuery({
-    queryKey: ["project", projectId],
-    queryFn: () => fetchProject(projectId!),
-    enabled: !!projectId,
+    queryKey: ["project", id],
+    queryFn: () => fetchProject(id!),
+    enabled: !!id,
   });
 
   const exportMutation = useMutation({
@@ -47,7 +47,7 @@ const ProjectDetail: React.FC = () => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        const filename = `project-${projectId}-export.pdf`;
+        const filename = `project-${id}-export.pdf`;
         link.setAttribute('download', filename);
         document.body.appendChild(link);
         link.click();
@@ -79,8 +79,8 @@ const ProjectDetail: React.FC = () => {
   });
 
   const handleExport = () => {
-    if (projectId) {
-      exportMutation.mutate(projectId);
+    if (id) {
+      exportMutation.mutate(id);
     }
   };
   
@@ -226,7 +226,7 @@ const ProjectDetail: React.FC = () => {
                         <TableCell>
                           {/* Reporter name may not be available in this response */}
                         </TableCell>
-                        <TableCell>{formatDate(issue.created_at)}</TableCell>
+                        <TableCell>{formatDate(issue.createdAt)}</TableCell>
                         <TableCell>{getStatusBadge(issue.status)}</TableCell>
                         <TableCell className="text-right">
                           {hasPermission("view-issues") && (
@@ -235,7 +235,7 @@ const ProjectDetail: React.FC = () => {
                               size="sm"
                               asChild
                             >
-                              <Link to={`/issue/${String(issue.id)}`}>
+                              <Link to={`/issues/${String(issue.id)}`}>
                                 <Eye size={16} />
                                 <span className="sr-only">{t('common.view')}</span>
                               </Link>

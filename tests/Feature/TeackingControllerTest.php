@@ -2,7 +2,9 @@
 
 namespace Feature;
 
-class TeackingControllerTest
+use Tests\TestCase;
+
+class TeackingControllerTest extends TestCase
 {
 
 }

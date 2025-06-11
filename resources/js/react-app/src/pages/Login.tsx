@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 const DEMO_ACCOUNTS = [
   { email: "Administratorin@gmail.com", role: "Administrator" },
   { email: "Managerin@gmail.com", role: "Manager" },
-  { email: "Arbeitgeberin@gmail.com", role: "Arbeitgeber" }
+  { email: "Arbeitgeberin@gmail.com", role: "facharbeiter" }
 ];
 
 const Login: React.FC = () => {
@@ -34,7 +34,7 @@ const Login: React.FC = () => {
         description: t('auth.welcome_back'),
       });
       navigate("/dashboard");
-    } catch (err) {
+  } catch (err) {
       toast({
         title: t('auth.login_failed'),
         description: err.message || t('auth.invalid_credentials'),

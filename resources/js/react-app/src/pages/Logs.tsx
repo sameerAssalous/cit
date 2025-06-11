@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/services/apiClient";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "react-i18next";
 
 // Define the log entry type
 interface LogEntry {
@@ -78,6 +79,7 @@ const fetchLogs = async (searchTerm = '') => {
 };
 
 const LogsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   
   // Filter state
@@ -102,8 +104,8 @@ const LogsPage: React.FC = () => {
     queryFn: () => fetchLogs(filters.searchTerm),
     onError: (error) => {
       toast({
-        title: "Error fetching logs",
-        description: `Failed to load logs: ${(error as Error).message}`,
+        title: t('logs.error.title'),
+        description: t('logs.error.description', { error: (error as Error).message }),
         variant: "destructive"
       });
     }
@@ -246,7 +248,7 @@ const LogsPage: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Logs className="h-8 w-8" />
-          System Logs
+          {t('logs.title')}
         </h1>
       </div>
 
@@ -258,17 +260,17 @@ const LogsPage: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="userName" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                User Name
+                {t('logs.filters.user_name')}
               </Label>
               <Select
                 value={filters.userName}
                 onValueChange={(value) => handleFilterChange('userName', value)}
               >
                 <SelectTrigger id="userName">
-                  <SelectValue placeholder="All Users" />
+                  <SelectValue placeholder={t('logs.filters.all_users')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="all">{t('logs.filters.all_users')}</SelectItem>
                   {uniqueUserNames.map((name: string) => (
                     <SelectItem key={name} value={name}>{name}</SelectItem>
                   ))}
@@ -278,16 +280,16 @@ const LogsPage: React.FC = () => {
 
             {/* Action filter */}
             <div className="space-y-2">
-              <Label htmlFor="action">Action Type</Label>
+              <Label htmlFor="action">{t('logs.filters.action_type')}</Label>
               <Select
                 value={filters.action}
                 onValueChange={(value) => handleFilterChange('action', value)}
               >
                 <SelectTrigger id="action">
-                  <SelectValue placeholder="All Actions" />
+                  <SelectValue placeholder={t('logs.filters.all_actions')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Actions</SelectItem>
+                  <SelectItem value="all">{t('logs.filters.all_actions')}</SelectItem>
                   {uniqueActions.map((action: string) => (
                     <SelectItem key={action} value={action}>{action}</SelectItem>
                   ))}
@@ -297,10 +299,10 @@ const LogsPage: React.FC = () => {
 
             {/* Affected object filter */}
             <div className="space-y-2">
-              <Label htmlFor="affected">Affected Object</Label>
+              <Label htmlFor="affected">{t('logs.filters.affected_object')}</Label>
               <Input
                 id="affected"
-                placeholder="Search affected objects"
+                placeholder={t('logs.filters.search_affected')}
                 value={filters.affected}
                 onChange={(e) => handleFilterChange('affected', e.target.value)}
               />
@@ -310,7 +312,7 @@ const LogsPage: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="dateRange" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Date Range
+                {t('logs.filters.date_range')}
               </Label>
               <Select
                 value={filters.dateRange.type}
@@ -319,24 +321,24 @@ const LogsPage: React.FC = () => {
                 }
               >
                 <SelectTrigger id="dateRange">
-                  <SelectValue placeholder="Date Range" />
+                  <SelectValue placeholder={t('logs.filters.date_range')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="yesterday">Yesterday</SelectItem>
-                  <SelectItem value="custom">Custom Range</SelectItem>
+                  <SelectItem value="all">{t('logs.filters.all_time')}</SelectItem>
+                  <SelectItem value="today">{t('logs.filters.today')}</SelectItem>
+                  <SelectItem value="yesterday">{t('logs.filters.yesterday')}</SelectItem>
+                  <SelectItem value="custom">{t('logs.filters.custom_range')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Custom date range selector - only shown when 'custom' is selected */}
+          {/* Custom date range selector */}
           {filters.dateRange.type === 'custom' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               {/* From date */}
               <div className="space-y-2">
-                <Label>From Date</Label>
+                <Label>{t('logs.filters.from_date')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -346,7 +348,7 @@ const LogsPage: React.FC = () => {
                       {filters.dateRange.from ? (
                         format(filters.dateRange.from, "PPP")
                       ) : (
-                        <span>Pick a date</span>
+                        <span>{t('logs.filters.pick_date')}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -363,7 +365,7 @@ const LogsPage: React.FC = () => {
 
               {/* To date */}
               <div className="space-y-2">
-                <Label>To Date</Label>
+                <Label>{t('logs.filters.to_date')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -373,7 +375,7 @@ const LogsPage: React.FC = () => {
                       {filters.dateRange.to ? (
                         format(filters.dateRange.to, "PPP")
                       ) : (
-                        <span>Pick a date</span>
+                        <span>{t('logs.filters.pick_date')}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -396,11 +398,11 @@ const LogsPage: React.FC = () => {
               variant="outline"
               onClick={resetFilters}
             >
-              Reset Filters
+              {t('logs.filters.reset')}
             </Button>
             <Button className="flex items-center gap-2" onClick={handleSearch}>
               <Filter className="h-4 w-4" />
-              Apply Filters
+              {t('logs.filters.apply')}
             </Button>
           </div>
         </CardContent>
@@ -409,39 +411,39 @@ const LogsPage: React.FC = () => {
       {/* Logs table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
-          <TableCaption>A log of all administrative actions</TableCaption>
+          <TableCaption>{t('logs.table.caption')}</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>User Name</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Affected</TableHead>
-              <TableHead>Info</TableHead>
-              <TableHead>Happened At</TableHead>
+              <TableHead>{t('logs.table.user_name')}</TableHead>
+              <TableHead>{t('logs.table.action')}</TableHead>
+              <TableHead>{t('logs.table.affected')}</TableHead>
+              <TableHead>{t('logs.table.info')}</TableHead>
+              <TableHead>{t('logs.table.happened_at')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8">
-                  Loading logs...
+                  {t('logs.table.loading')}
                 </TableCell>
               </TableRow>
             ) : error ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-red-500">
-                  Error loading logs. Please try again.
+                  {t('logs.table.error')}
                 </TableCell>
               </TableRow>
             ) : filteredLogs.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-10">
-                  No logs match your filters. Try adjusting your criteria.
+                  {t('logs.table.no_results')}
                 </TableCell>
               </TableRow>
             ) : (
               filteredLogs.map((log) => (
                 <TableRow key={log.id}>
-                  <TableCell className="font-medium">{log.user_name || 'Unknown User'}</TableCell>
+                  <TableCell className="font-medium">{log.user_name || t('logs.table.unknown_user')}</TableCell>
                   <TableCell>{log.action}</TableCell>
                   <TableCell>{log.model_type}</TableCell>
                   <TableCell>

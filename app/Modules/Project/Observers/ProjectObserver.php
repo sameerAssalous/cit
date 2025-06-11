@@ -55,7 +55,7 @@ class ProjectObserver
         $currentUser = Auth::user();
 
         \DB::table('trackings')->insert([
-            'user_id' => $currentUser ? $currentUser->id : null,
+            'user_id' => $currentUser ? $currentUser->id : 0,
             'action' => $action,
             'model_type' => 'Project',
             'model_id' => $project->id,

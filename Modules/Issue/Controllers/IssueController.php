@@ -39,7 +39,7 @@ class IssueController extends Controller
 
     public function update(UpdateIssueRequest $request, int $id): JsonResponse
     {
-        $issue = $this->issueService->updateIssue($id, $request->validated());
+        $issue = $this->issueService->updateIssue($id, $request->all());
         return response()->json(new IssueResource($issue));
     }
 

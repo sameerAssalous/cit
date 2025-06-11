@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import Issues from "./pages/Issues";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import Logs from "./pages/Logs";
+import Profile from "./pages/Profile";
 import { AuthProvider } from "./context/AuthContext";
 import ReportIssuePage from "./pages/ReportIssuePage";
 import IssueDetailPage from "./pages/IssueDetailPage";
@@ -45,6 +47,7 @@ function App() {
             <Route path="/issues/:id" element={<ProtectedRoute><IssueDetailPage /></ProtectedRoute>} />
             <Route path="/report-issue" element={<ProtectedRoute><ReportIssuePage /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

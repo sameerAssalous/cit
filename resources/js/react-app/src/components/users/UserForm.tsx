@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 import { 
   Dialog, 
   DialogContent,
@@ -34,6 +34,7 @@ interface Role {
 }
 
 const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,9 +42,9 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess 
   const [roleId, setRoleId] = useState<number | string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [roles, setRoles] = useState<Role[]>([
-    { id: 2, name: "admin" },
-    { id: 3, name: "project_manager" },
-    { id: 4, name: "employee" }
+    { id: 1, name: "admin" },
+    { id: 2, name: "project_manager" },
+    { id: 3, name: "employee" }
   ]);
   
   const { toast } = useToast();
@@ -104,8 +105,8 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess 
     
     if (!name || !email || (!isEditing && !password)) {
       toast({
-        title: "Missing information",
-        description: "Please fill out all required fields.",
+        title: t('users.form.missing_info_title'),
+        description: t('users.form.missing_info_description'),
         variant: "destructive",
       });
       return;
@@ -113,8 +114,8 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess 
     
     if (password && password !== passwordConfirmation) {
       toast({
-        title: "Password mismatch",
-        description: "Password and confirmation do not match.",
+        title: t('users.form.password_mismatch_title'),
+        description: t('users.form.password_mismatch_description'),
         variant: "destructive",
       });
       return;
@@ -138,14 +139,14 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess 
       if (isEditing && userId) {
         result = await updateUser(userId, userData);
         toast({
-          title: "User updated",
-          description: `User "${name}" has been updated successfully.`,
+          title: t('users.form.update_success_title'),
+          description: t('users.form.update_success_description', { name }),
         });
       } else {
         if (!password) {
           toast({
-            title: "Password required",
-            description: "Password is required when creating a new user.",
+            title: t('users.form.password_required_title'),
+            description: t('users.form.password_required_description'),
             variant: "destructive",
           });
           setIsLoading(false);
@@ -159,8 +160,8 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess 
         });
         
         toast({
-          title: "User created",
-          description: `User "${name}" has been created successfully.`,
+          title: t('users.form.create_success_title'),
+          description: t('users.form.create_success_description', { name }),
         });
       }
       
@@ -172,8 +173,8 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess 
     } catch (error: any) {
       console.error("Error saving user:", error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Something went wrong. Please try again.",
+        title: t('users.form.error_title'),
+        description: error.response?.data?.message || t('users.form.error_description'),
         variant: "destructive",
       });
     } finally {
@@ -185,83 +186,85 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, userId, onSuccess 
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit User" : "Add New User"}</DialogTitle>
+          <DialogTitle>{isEditing ? t('users.form.edit_title') : t('users.form.add_title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name *</Label>
+            <Label htmlFor="name">{t('users.form.name_label')} *</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter full name"
+              placeholder={t('users.form.name_placeholder')}
               required
               disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">{t('users.form.email_label')} *</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email address"
+              placeholder={t('users.form.email_placeholder')}
               required
               disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">{isEditing ? "New Password (leave blank to keep current)" : "Password *"}</Label>
+            <Label htmlFor="password">
+              {isEditing ? t('users.form.password_edit_label') : t('users.form.password_label')} *
+            </Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={isEditing ? "Enter new password (optional)" : "Enter password"}
+              placeholder={isEditing ? t('users.form.password_edit_placeholder') : t('users.form.password_placeholder')}
               required={!isEditing}
               disabled={isLoading}
               autoComplete="new-password"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="passwordConfirmation">Confirm Password</Label>
+            <Label htmlFor="passwordConfirmation">{t('users.form.password_confirm_label')}</Label>
             <Input
               id="passwordConfirmation"
               type="password"
               value={passwordConfirmation}
               onChange={(e) => setPasswordConfirmation(e.target.value)}
-              placeholder="Confirm password"
+              placeholder={t('users.form.password_confirm_placeholder')}
               required={!!password}
               disabled={isLoading}
               autoComplete="new-password"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="role">Role *</Label>
+            <Label htmlFor="role">{t('users.form.role_label')} *</Label>
             <Select 
               value={roleId.toString()} 
               onValueChange={(value) => setRoleId(Number(value))}
               disabled={isLoading}
             >
               <SelectTrigger id="role">
-                <SelectValue placeholder="Select role" />
+                <SelectValue placeholder={t('users.form.role_placeholder')} />
               </SelectTrigger>
               <SelectContent>
-                {roles.map(role => (
+                {roles.map((role) => (
                   <SelectItem key={role.id} value={role.id.toString()}>
-                    {role.name.charAt(0).toUpperCase() + role.name.slice(1).replace('_', ' ')}
+                    {t(`users.roles.${role.name}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <DialogFooter className="pt-4">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-              Cancel
+              {t('users.form.cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : isEditing ? "Update User" : "Create User"}
+              {isEditing ? t('users.form.update') : t('users.form.create')}
             </Button>
           </DialogFooter>
         </form>
